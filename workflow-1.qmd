@@ -1,0 +1,63 @@
+---
+title: "Workflow basics"
+---
+
+## Exercises 2.5 {.unnumbered}
+
+### Question 1
+
+> Why does this code not work?
+
+```{r}
+my_variable <- 10
+#my_varıable
+```
+
+**Solution:**
+
+> `my_variable` and `my_varıable` are two diffrent things. As you can notice, the second object is not defined yet and doesn't match the first syntactic name. And that's why such an `error` is raised : `object 'my_varıable' not found`.
+
+### Question 2
+
+> Tweak each of the following R commands so that they run correctly
+
+**Solution:**
+
+> It turns out that several errors were made and they comme from two issues: typos and incorrect logic applied to the `ggplot function`. While typos are easy to spot, even if everything is typed correctly: the `geom_smooth` function always requires data mappings (x and y). Because these were invoked at a `local level within geom_point`, they must therefore either be passed into ggplot (at the `global level`) or explicitly reintroduced within `geom_smooth.`
+
+```{r}
+library(tidyverse)
+
+ggplot(data    = mpg,
+       mapping = aes(x = displ, y = hwy)) + 
+  geom_point() +
+  geom_smooth(method = 'lm')
+```
+
+### Question 3
+
+> Press `Option + Shift + K` (Mac) / `Alt + Shift + K`(Window). What happens? How can you get to the same place using the menus?
+
+**Solution:**
+
+> Pressing Option + Shift + K (on Mac) or Alt + Shift + K (on Windows) in RStudio opens the `Keyboard Shortcut` Quick Reference panel. This is an incredibly `useful`, `built-in cheat sheet` that displays all the available keyboard shortcuts to help you work faster in RStudio.
+
+> To access this exact same reference panel using your mouse, you can navigate to the top menu bar and click:
+>
+> - Tools \> Keyboard Shortcuts Help
+
+### Question 4
+
+> Let’s revisit an exercise from the [Section 1.6.](#sec) Run the following lines of code. Which of the two plots is saved as mpg-plot.png? Why?
+
+```{r}
+my_bar_plot <- ggplot(mpg, aes(x = class)) +
+  geom_bar()
+my_scatter_plot <- ggplot(mpg, aes(x = cty, y = hwy)) +
+  geom_point()
+#ggsave(filename = "mpg-plot.png", plot = my_bar_plot)
+```
+
+**Solution:**
+
+> As we mentionned in the previous section, we said that `ggsave` save the last plot when running the code from top to bottom. But here, we introduced a new `argument` (inside the `ggsave` function) : `plot` that refers to the exact plot we want to save. Therefore it is saving `my_bar_plot` which is the first one.

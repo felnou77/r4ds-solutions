@@ -1,0 +1,41 @@
+project:
+  type: book
+  output-dir: _book
+
+book:
+  title: "R for Data Science (2e) Solutions"
+  subtitle: "Personal solutions manual and learning log"
+  author: "Nawfal Faraji"
+  date: last-modified
+  
+  # Connects sidebar to your future GitHub repository
+  site-url: https://felnou77.github.io/r4ds-solutions/
+  repo-url: https://github.com/felnou77/r4ds-solutions
+  repo-actions: [edit, issue]
+
+  sidebar:
+    style: "docked"
+    search: true
+
+  page-footer:
+    left: "[R for Data Science (2e)](https://r4ds.hadley.nz/) was written by Hadley Wickham, Mine Çetinkaya-Rundel & Garrett Grolemund"
+    right: "Built with [Quarto](https://quarto.org/)"
+
+  chapters:
+    - index.qmd
+    - data-visualisation.qmd
+    - workflow-1.qmd
+    - data-transformation.qmd
+
+format:
+  html:
+    theme: cosmo 
+    code-fold: show
+    code-tools: true
+    df-print: paged
+    grid:
+      sidebar-width: 370px    # Controls the left navigation sidebar width
+      
+execute:
+  warning: false
+  message: false
