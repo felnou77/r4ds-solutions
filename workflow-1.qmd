@@ -60,4 +60,4 @@ my_scatter_plot <- ggplot(mpg, aes(x = cty, y = hwy)) +
 
 **Solution:**
 
-> As we mentionned in the previous section, we said that `ggsave` save the last plot when running the code from top to bottom. But here, we introduced a new `argument` (inside the `ggsave` function) : `plot` that refers to the exact plot we want to save. Therefore it is saving `my_bar_plot` which is the first one.
+> As we mentioned in the previous section, we said that `ggsave` save the last plot when running the code from top to bottom. But here, we introduced a new `argument` (inside the `ggsave` function) : `plot` that refers to the exact plot we want to save. Therefore it is saving `my_bar_plot` which is the first one.
