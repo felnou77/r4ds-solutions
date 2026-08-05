@@ -1,5 +1,5 @@
 ---
-title: "Workflow basics"
+title: "Workflow : basics"
 ---
 
 ## Exercises 2.5 {.unnumbered}

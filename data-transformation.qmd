@@ -6,11 +6,211 @@ title: "Data transformation"
 
 ### Question 1
 
-> In a single pipeline for each condition, find all flights that meet the condition:
+> In a `single pipeline` for each condition, find all flights that meet the `condition`:
+
+**Solution:**
+
+> - `Had an arrival delay of two or more hours`
+
+```{r}
+library(tidyverse)
+library(nycflights13)
+
+flights |>
+  filter(arr_delay >= 120)
+```
+
+> - `Flew to Houston (`IAH`or`HOU`)`
+
+```{r}
+flights |> 
+  filter (dest %in% c('IAH', 'HOU'))
+```
+
+> - `Were operated by United, American or Delta`
+
+```{r}
+flights |> 
+  filter(carrier %in% c('AA', 'DL', 'UA'))
+```
+
+> - `Departed in summer (July, August, and September)`
+
+```{r}
+flights |> 
+  filter(month %in% c(7,8,9))
+```
+
+> - `Arrived more than two hours late but didn’t leave late`
+
+```{r}
+flights |> 
+  filter(arr_delay >= 120 & dep_delay <= 120 )
+```
+
+> - `Were delayed by at least an hour, but made up over 30 minutes in flight`
+
+```{r}
+flights |> 
+  filter(dep_delay >= 60 & arr_time >=30)
+```
+
+### Question 2
+
+> Sort `flights` to find the flights with the longest departure delays. Find the flights that left earliest in the morning.
+
+**Solution:**
+
+```{r}
+flights |> 
+  arrange(desc(dep_delay))
+```
+
+```{r}
+# By default, arrange() sorts data in ascending order (A to Z for text, or smallest to largest for numbers).
+flights |> 
+  arrange(dep_time)
+```
+
+### Question 3
+
+> Sort `flights` to find the fastest flights. (Hint: Try including a math calculation inside of your function.)
+
+**Solution:**
+
+> `Here the fastest flights aren't necessarily the flights that spent the least amount of time in the air`. Based on the question and specially the Hint, we are supposed to calculate the speed of the carriers and then arrange by that speed. I included this remark because at first I thought the solution was to sort by `air_time` instead of calculating speed. That being said, we will calculate the speed of carriers in `miles/min` without needing to do a `conversion of units`. We can calculate speed by dividing distance by air_time.
+
+> As shown, we did arrange and sort our data without adding a new column/variable (which, if we wanted to, should be speed in this case) by speed of flights. That being said, the fastest flight from New York city on 2013 was on `may`, `day 25` with a `speed of on average ~ 11.73 miles/minute`.
+
+```{r}
+flights |> 
+  arrange(desc(distance/air_time))
+```
+
+### Question 4
+
+> Was there a flight on every day of 2013?
+
+**Solution:**
+
+> The year 2013 had 365 days in total because it was a common year, not a leap year. Therefore, to check if there was a flight on every day of 2013 we should look for all unique month and day pairs. So the answer is `Yes` since there are `365 unique month-day combinations` in the data.
+
+```{r}
+glimpse(flights |> 
+         distinct(month, day))
+```
+
+### Question 5
+
+> Which flights traveled the farthest distance? Which traveled the least distance?
+
+**Solution:**
+
+> Before inspecting the data, I would expect to have a `single` flight with the farthest distance. But it turned out there were multiple flights with the same maximum distance across several months of the year (`the maximum distance is 4983 miles`). And it turns out that there are `342` `flights` with the `farthest distance`.(for example, repeated flights from 2 airports that are very far apart)
+
+```{r}
+flights |> 
+  filter(distance == max(distance))
+```
+
+> when it comes to the flights with the least distance, we simply let the arrange function do the sorting by `default` without introducing the `desc() function`. And it turns out that there is a `single flight` in `july` with the least distance which is `17 miles`.
+
+```{r}
+flights |> 
+  filter(distance == min(distance))
+```
+
+### Question 6
+
+> Does it matter what order you used `filter()` and `arrange()` if you’re using both? Why/why not? Think about the results and how much work the functions would have to do.
+
+**Solution:**
+
+> The order does not change the final output, but it dramatically impacts computational efficiency. Sorting (arrange) is a`heavy operation`. It is always `best practice` to use `filter()` first to reduce the data-set to the smallest possible size before asking the computer to `arrange()` it. Doing this prevents the machine from wasting memory sorting thousands of rows that will ultimately be discarded.
+
+> - `The Result: Order Does Not Matter` : Mathematically, the final output will be exactly the same. Whether you take all American Airlines flights and then sort them by delay, or sort all flights by delay and then extract the American Airlines ones, the final rows and their order will match perfectly.
+
+> - `The Workload (Execution Time) / Order Matters Immensely` : Sorting data (arrange) is one of the most resource-intensive operations a computer can perform. Filtering data (filter) is relatively cheap and fast.
+
+## Exercises 3.3.5 {.unnumbered}
+
+### Question 1
+
+> Compare `dep_time`, `sched_dep_time`, and `dep_delay.` How would you expect those three numbers to be related?
+
+**Solution:**
+
+> `dep_time` is the actual departure time of the flight, `sched_dep_time` is the scheduled departure time, and `dep_delay` is the difference between them. Ideally, `dep_time` should equal `sched_dep_time + dep_delay`. However, in practice, there might be some discrepancies due to data entry errors or rounding.
 >
-> - Had an arrival delay of two or more hours
-> - Flew to Houston (`IAH` or `HOU`)
-> - Were operated by United, American, or Delta
-> - Departed in summer (July, August, and September)
-> - Arrived more than two hours late but didn’t leave late
-> - Were delayed by at least an hour, but made up over 30 minutes in flight
+> For example, if a flight is scheduled to depart at 10:00 AM (`sched_dep_time`) and experiences a 30-minute delay, the actual departure time (`dep_time`) would be 10:30 AM, and the delay (`dep_delay`) would be 30 minutes. This relationship holds true in most cases, but data inconsistencies can occur. Below, you find a code that shows the exact number (`count`) of flights where `dep_delay` is perfectly the difference between `dep_time` and `sched_dep_time`.
+
+### Question 2
+
+> Brainstorm as many ways as possible to select dep_time, dep_delay, arr_time, and arr_delay from flights.
+
+**Solution:**
+
+```{r}
+# Straightforward
+flights |> 
+  select(dep_time, dep_delay, arr_time, arr_delay)
+
+# Another way to do it 
+flights |> 
+  relocate(sched_dep_time,sched_arr_time) |> 
+  select(dep_time:arr_delay)
+```
+
+### Question 3
+
+> What happens if you specify the name of the same variable multiple times in a `select()` call?
+
+**Solution:**
+
+> It simply ignores the duplicates and outputs a data frame with a single column.
+
+### Question 4
+
+> What does the any_of() function do? Why might it be helpful in conjunction with this vector?
+
+**Solution:**
+
+> I executed this code using the `any_of()` selection helper. While its full potential isn't entirely obvious in this simple, controlled example, I recognize it was built for robust programming. I look forward to discovering its true utility in future tasks with more unpredictable data-sets.
+
+```{r}
+variables <- c("year", "month", "day", "dep_delay", "arr_delay")
+flights |> 
+  select(any_of(variables))
+```
+
+### Question 5
+
+> Does the result of running the following code surprise you? How do the select helpers deal with upper and lower case by default? How can you change that default?
+
+```{r}
+flights |> select(contains("TIME"))
+```
+
+**Solution:**
+
+> The `contains()` helper is case-insensitive by default. It will match columns with "TIME" in any case, such as "time", "Time", or "TIME". To change this behavior and make it case-sensitive, you can use the `ignore.case = FALSE` argument inside the `contains()` function. For example: `select(contains("TIME", ignore.case = FALSE))`.
+
+### Question 6
+
+> Rename `air_time` to `air_time_min` to indicate units of measurement and move it to the beginning of the data frame.
+
+**Solution:**
+
+```{r}
+flights |> 
+  rename(air_time_min = air_time) |> 
+  relocate(air_time_min)
+```
+
+### Question 7
+
+> Why doesn’t the following work, and what does the error mean?
+
+**Solution:**
+
+> The code doesn't work because after the `select()` function we obtain a new data frame that contains a single column named `tailnum`. Therefore, it doesn't recognize `arr_delay` as we may think.
