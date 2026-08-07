@@ -214,3 +214,154 @@ flights |>
 **Solution:**
 
 > The code doesn't work because after the `select()` function we obtain a new data frame that contains a single column named `tailnum`. Therefore, it doesn't recognize `arr_delay` as we may think.
+
+## Exercises 3.5.7 {.unnumbered}
+
+### Question 1
+
+> Which carrier has the worst average delays? Challenge: can you disentangle the effects of bad airports vs. bad carriers? Why/why not? (Hint: think about `flights |> group_by(carrier, dest) |> summarize(n()))`
+
+**Solution:**
+
+> While a naive `group_by(carrier)` places `Frontier Airlines (F9)` as the worst carrier and Alaska Airlines (AS) near the top, grouping by both `carrier` and `dest` reveals significant confounding factors.
+
+> Alaska Airlines operated over `700 flights` in 2013 almost `exclusively to a single destination` (Seattle - SEA). Consequently, its low average delay might reflect optimal weather conditions and efficient operations at SEA rather than superior airline management. In the other hand, F9 operates across diverse hubs with drastically different delay profiles.
+
+> Without testing AS across high-congested airports, it is impossible to disentangle whether high delays stem from airline inefficiencies, airport logistics, or a combination of both.
+
+```{r}
+flights |> 
+  group_by(carrier) |> 
+  summarize(avg_delay = mean(arr_delay, na.rm = TRUE)) |> 
+  arrange(desc(avg_delay))
+```
+
+```{r}
+flights |> 
+  group_by(carrier, dest) |> 
+  summarise(avg_delay = mean(arr_delay, na.rm = TRUE),
+            n = n())
+```
+
+### Question 2
+
+> Find the flights that are most delayed upon departure to each destination.
+
+**Solution:**
+
+```{r}
+flights |> 
+  group_by(dest) |> 
+  slice_max(dep_delay, n = 1) |> 
+  relocate(dest, dep_delay)
+```
+
+### Question 3
+
+> How do delays vary over the course of the day? Illustrate your answer with a plot.
+
+**Solution:**
+
+> Here we plot a graph showing the the average departure delay on the same hour of each day of the month. Specifically the first day of january.
+
+```{r}
+library(ggplot2)
+
+flights |> 
+  group_by(month, day, hour) |> 
+  summarise(avg_dep_delay = mean(dep_delay, na.rm = TRUE)) |> 
+  relocate(avg_dep_delay) |> 
+  filter(month == 1 & day == 1) |> 
+  ggplot(aes(x = hour, y = avg_dep_delay)) +
+  geom_point()+
+  geom_smooth()
+```
+
+### Question 4
+
+> What happens if you supply a negative n to slice_min() and friends?
+
+**Solution:**
+
+| Function | Positive `n` (`n = 2`) | Negative `n` (`n = -2`) |
+|------------------------|------------------------|------------------------|
+| `slice_min()` | Keeps rows with the **2 smallest** values. (It might show more than 2 rows if there are duplicates) | Drops rows with the **2 largest** values (keeps all except the 2 largest). |
+| `slice_max()` | Keeps rows with the **2 largest** values. (Same) | Drops rows with the **2 smallest** values (keeps all except the 2 smallest). |
+
+### Question 5
+
+> Explain what `count()` does in terms of the dplyr verbs you just learned. What does the `sort` argument to `count()` do?
+
+**Solution:**
+
+> If you want to find the number of distinct occurrences, we use `count() function`. With the sort = TRUE argument, you can arrange them in descending order of the number of occurrences.
+
+### Question 6
+
+> Suppose we have the following tiny data frame:
+
+```{r}
+df <- tibble(
+  x = 1:5,
+  y = c("a", "b", "a", "a", "b"),
+  z = c("K", "K", "L", "L", "K")
+)
+```
+
+> a.`Write down what you think the output will look like, then check if you were correct, and describe what group_by() does.`
+>
+>**Solution:**
+>
+> When you run df \|\> group_by(y), the data rows and columns do not change, move, or reorder. The data-frame will look identical to the original input, except for an extra header line at the top indicating that the tibble is grouped by y (which has 2 unique values: "a" and "b").
+>
+> `group_by()` does nothing to the data itself but signals to subsequent verbs to perform operations independently within each group.
+
+
+> b.`Write down what you think the output will look like, then check if you were correct, and describe what arrange() does. Also,comment on how it’s different from the group_by() in part (a).`
+>
+>**Solution:**
+>
+> By default, arrange() sorts data in ascending order (`A to Z for text`, or smallest to largest for numbers). It reorders the rows of the data frame based on the specified variables`(chr in this case)`. In contrast, group_by() does not change the data itself but signals that subsequent operations should be performed within each group.
+
+
+> c.`Write down what you think the output will look like, then check if you were correct, and describe what the pipeline does.`
+>
+>**Solution:**
+>
+> This will clearly create a tibble with 2 rows and two columns. `y` and `mean_x`. the first column with unique values along with its corresponding mean over its values on x on the second column.
+
+
+
+> d.`Write down what you think the output will look like, then check if you were correct, and describe what the pipeline does. Then, comment on what the message says.`
+>
+>**Solution:**
+>
+> Here, as you can notice the code groups by distinct pairs over two variables `y` and `z` and calculates the mean of x for each pair. But it show a message that tells in simple terms: `Hey! I calculated your averages, but just so you know, I left this output grouped by y. If you don't want this, tell me how to handle the groups!` 
+
+
+
+> e.`Write down what you think the output will look like, then check if you were correct, and describe what the pipeline does. How is the output different from the one in part (d)?`
+>
+>**Solution:**
+>
+> It outputs the same result and the `.group` argument supresses the grouping.
+
+
+
+> f.`Write down what you think the outputs will look like, then check if you were correct, and describe what each pipeline does. How are the outputs of the two pipelines different?`
+>
+>**Solution:**
+>
+>The first code clearly produce a data-frame that has fewer rows eliminating duplicates of paires `(y, z)` with its mean over the variable `x`. The second one with mutate oblige itself to create a new column and fill every cell with duplicate mean values. 
+
+
+
+
+
+
+
+
+
+
+
+
