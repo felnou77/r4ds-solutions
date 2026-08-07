@@ -158,5 +158,25 @@
     "crumbs": [
       "<span class='chapter-number'>3</span>  <span class='chapter-title'>Data transformation</span>"
     ]
+  },
+  {
+    "objectID": "workflow-2.html",
+    "href": "workflow-2.html",
+    "title": "4  Workflow : code style",
+    "section": "",
+    "text": "Exercises 4.6",
+    "crumbs": [
+      "<span class='chapter-number'>4</span>  <span class='chapter-title'>Workflow : code style</span>"
+    ]
+  },
+  {
+    "objectID": "workflow-2.html#exercises-4.6",
+    "href": "workflow-2.html#exercises-4.6",
+    "title": "4  Workflow : code style",
+    "section": "",
+    "text": "4.0.1 Question 1\n\nRestyle the following pipelines following the guidelines above.\n\n\n\nCode\nflights|&gt;filter(dest==\"IAH\")|&gt;group_by(year,month,day)|&gt;summarize(n=n(),\ndelay=mean(arr_delay,na.rm=TRUE))|&gt;filter(n&gt;10)\n\nflights|&gt;filter(carrier==\"UA\",dest%in%c(\"IAH\",\"HOU\"),sched_dep_time&gt;\n0900,sched_arr_time&lt;2000)|&gt;group_by(flight)|&gt;summarize(delay=mean(\narr_delay,na.rm=TRUE),cancelled=sum(is.na(arr_delay)),n=n())|&gt;filter(n&gt;10)\n\n\nSolution:\n\nThis code shows a summary of the number of flights along with the average delay on each day from NYC to IAH with a selection of days where those flights were greater than 10.\n\n\n\nCode\nflights |&gt; \n  filter(dest==\"IAH\") |&gt; \n  group_by(year,month,day) |&gt; \n  summarize(n=n(),delay=mean(arr_delay,na.rm=TRUE)) |&gt; \n  filter(n&gt;10)\n\n\n\n\nCode\nflights |&gt; \n  filter(carrier==\"UA\",\n         dest%in%c(\"IAH\",\"HOU\"),\n         sched_dep_time&gt;0900,\n         sched_arr_time&lt;2000) |&gt; \n  group_by(flight) |&gt; \n  summarize(delay=mean(arr_delay,na.rm=TRUE),\n            cancelled=sum(is.na(arr_delay)),\n            n=n()) |&gt; \n  filter(n&gt;10)",
+    "crumbs": [
+      "<span class='chapter-number'>4</span>  <span class='chapter-title'>Workflow : code style</span>"
+    ]
   }
 ]

@@ -284,7 +284,7 @@ flights |>
 **Solution:**
 
 | Function | Positive `n` (`n = 2`) | Negative `n` (`n = -2`) |
-|------------------------|------------------------|------------------------|
+|---------------|------------------------|------------------------|
 | `slice_min()` | Keeps rows with the **2 smallest** values. (It might show more than 2 rows if there are duplicates) | Drops rows with the **2 largest** values (keeps all except the 2 largest). |
 | `slice_max()` | Keeps rows with the **2 largest** values. (Same) | Drops rows with the **2 smallest** values (keeps all except the 2 smallest). |
 
@@ -310,58 +310,38 @@ df <- tibble(
 
 > a.`Write down what you think the output will look like, then check if you were correct, and describe what group_by() does.`
 >
->**Solution:**
+> **Solution:**
 >
 > When you run df \|\> group_by(y), the data rows and columns do not change, move, or reorder. The data-frame will look identical to the original input, except for an extra header line at the top indicating that the tibble is grouped by y (which has 2 unique values: "a" and "b").
 >
 > `group_by()` does nothing to the data itself but signals to subsequent verbs to perform operations independently within each group.
 
-
 > b.`Write down what you think the output will look like, then check if you were correct, and describe what arrange() does. Also,comment on how it’s different from the group_by() in part (a).`
 >
->**Solution:**
+> **Solution:**
 >
 > By default, arrange() sorts data in ascending order (`A to Z for text`, or smallest to largest for numbers). It reorders the rows of the data frame based on the specified variables`(chr in this case)`. In contrast, group_by() does not change the data itself but signals that subsequent operations should be performed within each group.
 
-
 > c.`Write down what you think the output will look like, then check if you were correct, and describe what the pipeline does.`
 >
->**Solution:**
+> **Solution:**
 >
 > This will clearly create a tibble with 2 rows and two columns. `y` and `mean_x`. the first column with unique values along with its corresponding mean over its values on x on the second column.
 
-
-
 > d.`Write down what you think the output will look like, then check if you were correct, and describe what the pipeline does. Then, comment on what the message says.`
 >
->**Solution:**
+> **Solution:**
 >
-> Here, as you can notice the code groups by distinct pairs over two variables `y` and `z` and calculates the mean of x for each pair. But it show a message that tells in simple terms: `Hey! I calculated your averages, but just so you know, I left this output grouped by y. If you don't want this, tell me how to handle the groups!` 
-
-
+> Here, as you can notice the code groups by distinct pairs over two variables `y` and `z` and calculates the mean of x for each pair. But it show a message that tells in simple terms: `Hey! I calculated your averages, but just so you know, I left this output grouped by y. If you don't want this, tell me how to handle the groups!`
 
 > e.`Write down what you think the output will look like, then check if you were correct, and describe what the pipeline does. How is the output different from the one in part (d)?`
 >
->**Solution:**
+> **Solution:**
 >
 > It outputs the same result and the `.group` argument supresses the grouping.
 
-
-
 > f.`Write down what you think the outputs will look like, then check if you were correct, and describe what each pipeline does. How are the outputs of the two pipelines different?`
 >
->**Solution:**
+> **Solution:**
 >
->The first code clearly produce a data-frame that has fewer rows eliminating duplicates of paires `(y, z)` with its mean over the variable `x`. The second one with mutate oblige itself to create a new column and fill every cell with duplicate mean values. 
-
-
-
-
-
-
-
-
-
-
-
-
+> The first code clearly produce a data-frame that has fewer rows eliminating duplicates of paires `(y, z)` with its mean over the variable `x`. The second one with mutate oblige itself to create a new column and fill every cell with duplicate mean values.

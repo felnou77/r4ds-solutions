@@ -1,0 +1,45 @@
+---
+title: "Workflow : code style"
+---
+
+## Exercises 4.6 {.unnumbered}
+
+### Question 1 
+
+> Restyle the following pipelines following the guidelines above.
+
+```{r, eval=FALSE}
+flights|>filter(dest=="IAH")|>group_by(year,month,day)|>summarize(n=n(),
+delay=mean(arr_delay,na.rm=TRUE))|>filter(n>10)
+
+flights|>filter(carrier=="UA",dest%in%c("IAH","HOU"),sched_dep_time>
+0900,sched_arr_time<2000)|>group_by(flight)|>summarize(delay=mean(
+arr_delay,na.rm=TRUE),cancelled=sum(is.na(arr_delay)),n=n())|>filter(n>10)
+```
+
+
+**Solution:**
+
+> This code shows a summary of the number of flights along with the average delay on each day from NYC to IAH with a selection of days where those flights were greater than 10.
+
+```{r, eval=FALSE}
+flights |> 
+  filter(dest=="IAH") |> 
+  group_by(year,month,day) |> 
+  summarize(n=n(),delay=mean(arr_delay,na.rm=TRUE)) |> 
+  filter(n>10)
+```
+
+```{r, eval=FALSE}
+flights |> 
+  filter(carrier=="UA",
+         dest%in%c("IAH","HOU"),
+         sched_dep_time>0900,
+         sched_arr_time<2000) |> 
+  group_by(flight) |> 
+  summarize(delay=mean(arr_delay,na.rm=TRUE),
+            cancelled=sum(is.na(arr_delay)),
+            n=n()) |> 
+  filter(n>10)
+```
+
