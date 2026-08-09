@@ -1,5 +1,7 @@
 ---
 title: "Data transformation"
+execute:
+  eval: false
 ---
 
 ## Exercises 3.2.5 {.unnumbered}
@@ -264,8 +266,10 @@ flights |>
 
 > Here we plot a graph showing the the average departure delay on the same hour of each day of the month. Specifically the first day of january.
 
-```{r}
+```{r, eval=TRUE}
 library(ggplot2)
+library(tidyverse)
+library(nycflights13)
 
 flights |> 
   group_by(month, day, hour) |> 
