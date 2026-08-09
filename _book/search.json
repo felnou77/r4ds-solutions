@@ -178,5 +178,65 @@
     "crumbs": [
       "<span class='chapter-number'>4</span>  <span class='chapter-title'>Workflow : code style</span>"
     ]
+  },
+  {
+    "objectID": "data-tidying.html",
+    "href": "data-tidying.html",
+    "title": "5  Data tidying",
+    "section": "",
+    "text": "Exercises 5.2.1",
+    "crumbs": [
+      "<span class='chapter-number'>5</span>  <span class='chapter-title'>Data tidying</span>"
+    ]
+  },
+  {
+    "objectID": "data-tidying.html#question-1",
+    "href": "data-tidying.html#question-1",
+    "title": "5  Data tidying",
+    "section": "5.1 Question 1",
+    "text": "5.1 Question 1\n\nFor each of the sample tables, describe what each observation and each column represents.\n\nSolution:\n\nTable 1 is clearly tidy where each column represents a variable and every row represents an observation. Table 2 contains a column named type that is clearly a categorical variable taking two distinct string values : cases & population. Along with this column we find a third column indicating either the number (count) of TB cases or the population of the country in each year. That’s why it is a tibble whose number of rows is doubled compared to table 1. The third table contains three column with a one named rate which has a condensed information combining the number of cases along with the total population (notice that the rate is not in its final form and stored as a string and not as a real number (double). Such a column would have been created by the function mutate() from table 1 + a special series (if needed) of functions to store it as a string. Note also that this form made it easy to interpret it and figure out from where it comes from.",
+    "crumbs": [
+      "<span class='chapter-number'>5</span>  <span class='chapter-title'>Data tidying</span>"
+    ]
+  },
+  {
+    "objectID": "data-tidying.html#question-2",
+    "href": "data-tidying.html#question-2",
+    "title": "5  Data tidying",
+    "section": "5.2 Question 2",
+    "text": "5.2 Question 2\n\nSketch out the process you’d use to calculate the rate for table2 and table3. You will need to perform four operations:\n\n\nExtract the number of TB cases per country per year.\nExtract the matching population per country per year.\nDivide cases by population, and multiply by 10000.\nStore back in the appropriate place.\n\nSolution:\n\nBased on table 2, to calculate the rate I would first group by country and year combined and then take the count from the fourth variable that matches the value cases and divide by the value of the same column that matches the value population in the type column.\n\n\nBased on table 3, to calculate the rate I would need a function that transform a numerical string to a numerical value dbl. Or, for example, to recreate a tidy table like table 1 I would use regular expression to separate/extract two parts of the same value and create two column with each part after transforming it to numerical values.",
+    "crumbs": [
+      "<span class='chapter-number'>5</span>  <span class='chapter-title'>Data tidying</span>"
+    ]
+  },
+  {
+    "objectID": "workflow-3.html",
+    "href": "workflow-3.html",
+    "title": "6  Workflow : scripts and projects",
+    "section": "",
+    "text": "In summary, scripts and projects give you a solid workflow that will serve you well in the future:\n\n\nCreate one RStudio project for each data analysis project.\nSave your scripts (with informative names) in the project, edit them, run them in bits or as a whole. Restart R frequently to make sure you’ve captured everything in your scripts.\n\n\nThen everything you need is in one place and cleanly separated from all the other projects that you are working on.",
+    "crumbs": [
+      "<span class='chapter-number'>6</span>  <span class='chapter-title'>Workflow : scripts and projects</span>"
+    ]
+  },
+  {
+    "objectID": "data-import.html",
+    "href": "data-import.html",
+    "title": "7  Data import",
+    "section": "",
+    "text": "Exercises 7.2.4",
+    "crumbs": [
+      "<span class='chapter-number'>7</span>  <span class='chapter-title'>Data import</span>"
+    ]
+  },
+  {
+    "objectID": "data-import.html#exercises-7.2.4",
+    "href": "data-import.html#exercises-7.2.4",
+    "title": "7  Data import",
+    "section": "",
+    "text": "7.0.1 Question 1\n\nWhat function would you use to read a file where fields were separated with “|”?\n\nSolution:\n\nSince read_delim() reads in files with any delimiter, and attempts to automatically guess the delimiter if you don’t specify it. I would try it first without specifying the “|” delimiter & inspect the result or doing it from the very begining and directly set the given delimiter.\n\n\n\n7.0.2 Question 2\n\nApart from file, skip, and comment, what other arguments do read_csv() and read_tsv() have in common?\n\nSolution:\n\nThe read_csv() and read_tsv() functions both have the col_types argument in common, which allows you to specify the data types for each column.\n\n\n\n7.0.3 Question 3\n\nWhat are the most important arguments to read_fwf()?\n\nSolution:\n\nThe read_fwf() function from the readr package (part of the tidyverse) is used to import fixed-width files—data formats where columns are aligned by specific character widths or positions rather than separated by delimiters like commas or tabs.\n\n\nThe two most important arguments you need to specify are:\n\n\nfile: The path to the file, a connection, or a raw string containing the data.\ncol_positions : This is the most critical argument specific to fixed-width files. It tells R where each column starts and ends.\n\n\n\n7.0.4 Question 4\n\nSometimes strings in a CSV file contain commas. To prevent them from causing problems, they need to be surrounded by a quoting character, like \" or '. By default, read_csv() assumes that the quoting character will be “. To read the following text into a data frame, what argument to read_csv() do you need to specify?\n\nSolution:\n\nIn this example, we encounter a data frame where the first column x contains numerical values and the second one contains strings as values (‘a,b’ as a whole represents a value of the variable y). To do so, we specify the argument col_types as \"dc\" : double for the first variable and character for the second one. The code is below.\n\n\n\nCode\nlibrary(tidyverse)\nread_csv(I(\"x,y\\n1,'a,b'\"), col_types = \"dc\")\n\n\n\n  \n\n\n\n\n\n7.0.5 Question 5\n\nIdentify what is wrong with each of the following inline CSV files. What happens when you run the code?\n\nSolution:\n\n\nCode\n# 1 |\nread_csv(\"a,b\\n1,2,3\\n4,5,6\")\n\n# 2 | \nread_csv(\"a,b,c\\n1,2\\n1,2,3,4\")\n\n# 3 | \nread_csv(\"a,b\\n\\\"1\")\n\n# 4 | \nread_csv(\"a,b\\n1,2\\na,b\")\n\n# 5 | \nread_csv(\"a;b\\n1;3\")\n\n\n\nThe first code creates two variables a & b along with rows of three cell values. theoretically, it is quite impossible to execute but read_csv finds always a way to represent our data in unexpected ways as we will see in the examples below. Try to execute the code to see how read_csv interprets those inputs.\n\n\nThe second code creates ” variables a, b & c. Introduce a row with two cell values and then a second row with 4 cell values. Another example of miss-using those inputs. But an opportunity of exploring how read_csv handles inconsistent data.\n\n\nThe third code ideally should create two columns and fill rows with values for each one of them. But here, we notice a strange typo that follows the new line character. Surprisingly, read_csv found a way to alter column types and fill the rows with related values. Try to execute the code to see how read_csv interprets those inputs.\n\n\nThe fourth code : Here things gets more interesting. As we start to read, from left to right, we might expect the first column to be numerical (double) but the second rows introduce strings along with those numbers. read_csv altered the column types and converted numbers to character to keep uniformity along each column.\n\n\nThe fifth code introduces data separated with semi-colon instead of being delimited with coma since we are using read_csv (that’s the human read but the machine has another way to interprets things) : here read_csv considers “a;b” as a column non-syntactic name (that’s why it wrapped it up between back-ticks) along with a single value as a character which is ‘1;3’.",
+    "crumbs": [
+      "<span class='chapter-number'>7</span>  <span class='chapter-title'>Data import</span>"
+    ]
   }
 ]

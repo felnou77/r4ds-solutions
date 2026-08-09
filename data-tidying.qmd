@@ -1,0 +1,28 @@
+---
+title: "Data tidying"
+---
+
+## Exercises 5.2.1 {.unnumbered}
+
+## Question 1
+
+> For each of the sample tables, describe what each observation and each column represents.
+
+**Solution:**
+
+> Table 1 is clearly tidy where each column represents a variable and every row represents an observation. Table 2 contains a column named `type` that is clearly a categorical variable taking two distinct string values : `cases` & `population`. Along with this column we find a third column indicating either the number (`count`) of TB cases or the population of the country in each year. That's why it is a tibble whose number of rows is doubled compared to `table 1`. The third table contains three column with a one named `rate` which has a condensed information combining the number of cases along with the total population `(notice that the rate is not in its final form and stored as a string and not as a real number` (`double`). Such a column would have been created by the function `mutate()` from table 1 + a special series (if needed) of functions to store it as a string. Note also that this form made it easy to interpret it and figure out from where it comes from.
+
+## Question 2
+
+> Sketch out the process you’d use to calculate the rate for table2 and table3. You will need to perform four operations:
+
+a.  Extract the number of TB cases per country per year.
+b.  Extract the matching population per country per year.
+c.  Divide cases by population, and multiply by 10000.
+d.  Store back in the appropriate place.
+
+**Solution:**
+
+> Based on `table 2`, to calculate the rate I would first group by country and year combined and then take the count from the fourth variable that matches the value `cases` and divide by the value of the same column that matches the value `population` in the `type` column.
+
+> Based on `table 3`, to calculate the rate I would need a function that transform a numerical string to a numerical value `dbl`. Or, for example, to recreate a tidy table like `table 1` I would use regular expression to separate/extract two parts of the same value and create two column with each part after transforming it to numerical values.

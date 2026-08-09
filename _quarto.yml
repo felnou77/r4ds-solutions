@@ -27,6 +27,9 @@ book:
     - workflow-1.qmd
     - data-transformation.qmd
     - workflow-2.qmd
+    - data-tidying.qmd
+    - workflow-3.qmd
+    - data-import.qmd
 
 format:
   html:
