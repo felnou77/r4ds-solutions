@@ -112,7 +112,8 @@ b.  Plotting a scatter plot of `1` vs. `2`
 ```{r, eval=FALSE}
 library(ggplot2)
 
-ggplot(data=annoying, aes(x=`1`, y=`2`)) +
+annoying |> 
+  ggplot(aes(x=`1`, y=`2`)) +
   geom_point()
 ```
 

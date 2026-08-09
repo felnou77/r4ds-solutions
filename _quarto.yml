@@ -30,6 +30,8 @@ book:
     - data-tidying.qmd
     - workflow-3.qmd
     - data-import.qmd
+    - workflow-4.qmd
+    - layers.qmd
 
 format:
   html:

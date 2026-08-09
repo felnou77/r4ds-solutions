@@ -1,0 +1,9 @@
+---
+title: "Workflow : getting help"
+---
+
+# Summary {.unnumbered}
+
+> This chapter concludes the Whole Game part of the book. You’ve now seen the most important parts of the data science process: visualization, transformation, tidying and importing. Now you’ve got a holistic view of the whole process, and we start to get into the details of small pieces.
+
+> The next part of the book, Visualize, does a deeper dive into the grammar of graphics and creating data visualizations with ggplot2, showcases how to use the tools you’ve learned so far to conduct exploratory data analysis, and introduces good practices for creating plots for communication.
