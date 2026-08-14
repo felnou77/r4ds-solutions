@@ -32,6 +32,7 @@ book:
     - data-import.qmd
     - workflow-4.qmd
     - layers.qmd
+    - eda.qmd
 
 format:
   html:
