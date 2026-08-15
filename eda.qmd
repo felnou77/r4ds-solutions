@@ -71,7 +71,7 @@ ggplot(data = diamonds, aes(x = price)) +
 
 > - `coord_cartesian`() : This acts as a true visual zoom. It keeps all the underlying data intact, calculates the statistics (like binning for the histogram) based on the full dataset, and only clips the final visual output after the plot is drawn.
 
-> As you can notice, we are using the same data across the two ggplot functions but we get different plots. Why ? Well first of all, we left the bindwidth unset which led to histogram with 30 bins. But the first plot with `coord_cartesian` is just a zoom/part of this histogram with x values between 5 and 11 mm which results in a histogram of let's say half of 30 bins. The second plot, in contrast, will always be a histogram of 30 bins since we are using xlim.
+> As you can notice, we are using the same data across the two ggplot functions but we get different plots. Why ? Well first of all, we left the bindwidth unset which led to histogram with fixed 30 bins. But the first plot with `coord_cartesian` is just a zoom/part of this histogram with x values between 5 and 11 mm which results in a histogram of let's say half of 30 bins. The second plot, in contrast, will always be a histogram of 30 bins since we are using xlim.
 
 ```{r}
 #| warning: false
@@ -88,3 +88,71 @@ ggplot(diamonds, aes(x = x)) +
   geom_histogram(alpha = 0.5, fill = "steelblue") +
   xlim(5,11)
 ```
+
+## Exercises 10.4.1  {.unnumbered}
+
+### Question 1 
+
+> What happens to missing values in a histogram? What happens to missing values in a bar chart? Why is there a difference in how missing values are handled in histograms and bar charts?
+
+**Solution:**
+
+> In a histogram, missing values (NA) are typically excluded from the calculation, which means they do not contribute to the bin counts. In a bar chart, missing values are often treated as a separate category, resulting in a bar for NA. The difference arises because histograms represent continuous data distributions, where missing values are not meaningful, while bar charts represent categorical data, where missing values can be considered a valid category.
+
+### Question 2 
+
+> What does na.rm = TRUE do in mean() and sum()?
+
+**Solution:**
+
+> na.rm = TRUE removes missing values (NA) from the calculation. In the context of mean() and sum(), this means that any NA values in the input vector are excluded from the computation. For mean(), this results in the average of the non-missing values, while for sum(), it results in the sum of the non-missing values. If na.rm = FALSE (the default), the presence of any NA values will result in an NA output.
+
+### Question 3 
+
+> Recreate the frequency plot of `scheduled_dep_time` colored by whether the flight was cancelled or not. Also facet by the `cancelled` variable. Experiment with different values of the `scales` variable in the faceting function to mitigate the effect of more non-cancelled flights than cancelled flights.
+
+**Solution:**
+
+```{r}
+#| warning: false
+#| layout-ncol: 1
+#| fig-width: 10
+
+data.2 = nycflights13::flights |> 
+  mutate(
+    cancelled = is.na(dep_time),
+    sched_dep_time = hour + (minute / 60)
+  )
+
+ggplot(data.2, aes(x = sched_dep_time)) +
+  geom_freqpoly() +
+  geom_histogram(alpha=0.5, fill = "steelblue") +
+  facet_wrap(~ cancelled, scales = "free") +
+  labs(title = "Frequency plot of scheduled departure time by cancellation status")
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
