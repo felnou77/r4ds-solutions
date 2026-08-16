@@ -33,6 +33,7 @@ book:
     - workflow-4.qmd
     - layers.qmd
     - eda.qmd
+    - comm.qmd
 
 format:
   html:
