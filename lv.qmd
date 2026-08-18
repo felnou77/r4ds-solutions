@@ -1,0 +1,239 @@
+---
+title: "Logical vectors"
+---
+
+## Exercises 12.2.4 {.unnumbered}
+
+### Question 1
+
+> How does `dplyr::near()` work? Type `near` to see the source code. Is `sqrt(2)^2` near `2`?
+
+**Solution:**
+
+> To save you time, I am pasting the exact documentation description of the `dplyr::near()` function :
+
+> - This is a safe way of comparing if two vectors of floating point numbers are (pairwise) equal. This is safer than using ==, because it has a built in tolerance. So basically it checks if two numbers are close to each other within a tolerance. So Yes, `sqrt(2)^2` is near `2`.
+
+### Question 2
+
+> Use `mutate()`, `is.na()`, and `count()` together to describe how the missing values in `dep_time`, `sched_dep_time` and `dep_delay` are connected.
+
+**Solution:**
+
+```{r}
+library(nycflights13)
+library(dplyr)
+
+flights |> 
+  mutate(
+    dep_time = is.na(dep_time),
+    sched_dep_time = is.na(sched_dep_time),
+    dep_delay = is.na(dep_delay)
+  ) |> 
+  count(dep_time, sched_dep_time, dep_delay)
+```
+
+## Exercises 12.3.4 {.unnumbered}
+
+### Question 1
+
+> Find all flights where `arr_delay` is missing but `dep_delay` is not. Find all flights where neither `arr_time` nor `sched_arr_time` are missing, but `arr_delay` is.
+
+**Solution:**
+
+```{r, eval=FALSE}
+# arr_delay is missing but dep_delay is not
+flights |> 
+  filter(is.na(arr_delay) & !is.na(dep_delay))
+
+# arr_time nor sched_arr_time are missing, but arr_delay is
+flights |> 
+  filter(!is.na(arr_time) & !is.na(sched_arr_time) & is.na(arr_delay))
+
+```
+
+### Question 2
+
+> How many flights have a missing dep_time? What other variables are missing in these rows? What might these rows represent?
+
+**Solution:**
+
+> As we can notice, there are `8255` flights with `missing dep_time`. Other variables missing in these rows include dep_delay, arr_time, air_time... These rows might represent flights where departure was cancelled and not allowed due to the weather or technical issues...
+
+```{r, eval=FALSE}
+flights |> 
+  filter(is.na(dep_time))
+```
+
+### Question 3
+
+> Assuming that a `missing dep_time` implies that a flight is `cancelled`, look at the number of cancelled flights per day. Is there a pattern? Is there a connection between the proportion of cancelled flights and the average delay of non-cancelled flights?
+
+**Solution:**
+
+> While looking across all 12 monthly graphs can feel a bit noisy, if you look closely at the spikes, a very clear pattern emerges: cancellations do not happen randomly; they cluster heavily on specific days.
+
+> You will notice flat periods with very few cancellations interrupted by sudden, massive spikes (where hundreds of flights are cancelled on a single day). These spikes correspond directly to major severe weather events hitting the New York airports in 2013, such as winter snowstorms or thunderstorms...
+
+```{r}
+#| warning: false
+#| layout-ncol: 1
+#| fig-width: 10
+
+library(ggplot2)
+
+data = flights |> 
+         filter(is.na(dep_time)) |> 
+         count(month, day)
+
+ggplot(data, aes(x = day, y = n)) +
+  geom_col(fill = "steelblue") +
+  facet_wrap(~ month, scales = "free") +
+  labs(
+    title = "Daily Cancelled Flights in 2013",
+    x     = "Day of the Month",
+    y     = "Number of Cancellations"
+  )
+
+```
+
+> When we inspect the plot, a strong positive correlation appears: on days when the average delay of non-cancelled flights goes up, the proportion of cancelled flights also goes up.
+
+> This shows that when severe weather or congestion hits, airlines first try to push through by delaying departures. But as conditions worsen and safety or scheduling limits are reached, those delays quickly escalate into mass cancellations.
+
+```{r}
+flights |> 
+  group_by(month, day) |> 
+  summarize(
+    prop_cancelled = mean(is.na(dep_time)),
+    avg_delay = mean(dep_delay, na.rm = TRUE)
+  ) |> 
+  ggplot(aes(x = avg_delay, y = prop_cancelled)) +
+  geom_point(alpha = 0.6) +
+  geom_smooth(method = "loess", se = FALSE, color = "red") +
+  labs(
+    title = "Cancellations vs. Average Delay",
+    x = "Average Delay of Non-Cancelled Flights (Minutes)",
+    y = "Proportion of Cancelled Flights"
+  )
+```
+
+## Exercises 12.4.4 {.unnumbered}
+
+### Question 1
+
+> What will `sum(is.na(x))` tell you? How about `mean(is.na(x))`?
+
+**Solution:**
+
+> `sum(is.na(x))` returns the number of times the variable `x` took as a value `NA`.
+>
+> `mean(is.na(x))` is basically just sum(is.na(x)) divided by the number of values that `x` takes (`NA` included). Therefore, mean(is.na(x)) return the proportion of `NA` occurrences inside the variable `x`.
+
+### Question 2
+
+> What does `prod()` return when applied to a logical vector? What logical summary function is it equivalent to? What does `min()` return when applied to a logical vector? What logical summary function is it equivalent to? Read the documentation and perform a few experiments.
+
+**Solution:**
+
+> `prod()` returns the product of all the values present in its arguments. `prod()` has an argument na.rm and if it is FALSE (default value) an NA value in any of the arguments will cause a value of NA to be returned, otherwise NA values are ignored.
+
+> When applied to a logical vector in R, `prod()` treats TRUE as 1 and FALSE as 0 and then multiplies them all together.
+> Because multiplying anything by zero results in zero, `prod()` will return:
+
+> - `1`: If every value in the vector is `TRUE.`
+> - `0`: If there is at least one `FALSE` in the vector.
+
+> So, it is mathematically equivalent to the `all() summary function`.
+
+```{r, eval=FALSE}
+my_vector <- c(TRUE, TRUE, FALSE)
+
+# prod() returns 0 because of the FALSE (1 * 1 * 0)
+prod(my_vector) 
+#> [1] 0
+
+# all() returns FALSE because not everything is TRUE
+all(my_vector)  
+#> [1] FALSE
+```
+
+> `min()` returns the minimal value present in its arguments. When applied to a logical vector in R, `min()` treats TRUE as 1 and FALSE as 0 and then simply returns 0 if only one is FALSE. So it is equivalent also to `all()`. In contratst, `max()` is equivalent to `any()`.
+
+```{r, eval=FALSE}
+# min() returns 0 because (0 < 1)
+min(my_vector) 
+#> [1] 0
+
+# max() returns 1 because (1 > 0)
+max(my_vector) 
+#> [1] 1
+
+# all() returns FALSE because not everything is TRUE
+all(my_vector)  
+#> [1] FALSE
+```
+
+## Exercises 12.5.4  {.unnumbered}
+
+### Question 1 
+
+> A number is even if it’s divisible by two, which in R you can find out with `x %% 2 == 0`. Use this fact and `if_else()` to determine whether each number between 0 and 20 is even or odd.
+
+**Solution:**
+
+> It's pretty straightforward.
+
+```{r}
+x <- c(0:20)
+if_else(x%%2==0, "even", "odd")
+```
+### Question 2 
+
+> Given a vector of days like `x <- c("Monday", "Saturday", "Wednesday")`, use an `if_else()` statement to label them as weekends or weekdays.
+
+**Solution:**
+
+```{r}
+day <- c("Monday", "Saturday", "Wednesday")
+week_end <- c("Saturday", "Sunday")
+
+if_else(day %in% week_end, "weekend", "weekday")
+```
+### Question 3 
+
+> Use `if_else()` to compute the absolute value of a numeric vector called x.
+
+**Solution:**
+
+```{r}
+if_else(x < 0, -x, x)
+```
+
+### Question 4 
+
+> Write a `case_when()` statement that uses the `month` and `day` columns from `flights` to label a selection of important US holidays (e.g., New Years Day, 4th of July, Thanksgiving, and Christmas). First create a logical column that is either `TRUE` or `FALSE`, and then create a character column that either gives the name of the holiday or is `NA`.
+
+**Solution:**
+
+```{r}
+holidays <- c("New Years Day", "4th of July", "Thanksgiving", "Christmas")
+
+flights |>
+  mutate(
+    is_holiday = case_when(
+    (month == 1 & day == 1) ~ TRUE,
+    (month == 7 & day == 4) ~ TRUE,
+    (month == 11 & day == 23) ~ TRUE,
+    (month == 12 & day == 25) ~ TRUE,
+    .default = FALSE
+    ),
+     holiday = case_when(
+    (month == 1 & day == 1) ~ "New Years Day",
+    (month == 7 & day == 4) ~ "4th of July",
+    (month == 11 & day == 23) ~ "Thanksgiving",
+    (month == 12 & day == 25) ~ "Christmas",
+     )
+  )
+```
+
