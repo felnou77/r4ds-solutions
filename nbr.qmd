@@ -1,0 +1,613 @@
+---
+title: "Numbers"
+format: html
+---
+
+## Exercises 13.3.1 {.unnumbered}
+
+### Question 1
+
+> How can you use `count()` to count the number of rows with a missing value for a given variable?
+
+**Solution:**
+
+> You can use the `count()` function in combination with `is.na()` to count the number of missing values for a given variable. A simple way to do it is: `sum(is.na(data$variable))`. It will return the number of missing values in the `variable` column of the `data` dataframe. Otherwise the code below responds to the question.
+
+```{r}
+library(ggplot2)
+library(tidyverse)
+library(nycflights13)
+
+# Missing values in dep_time column
+flights |> 
+  mutate(missing_values = is.na(dep_time)) |> 
+  count(missing_values)
+```
+
+### Question 2
+
+> Expand the following calls to `count()` to instead use `group_by()`, `summarize()`, and `arrange()`:
+
+**Solution:**
+
+```{r, eval=FALSE}
+# from this 
+flights |> count(dest, sort = TRUE)
+
+# to this 
+flights |> 
+  group_by(dest) |> 
+  summarize(n=n()) |> 
+  arrange(desc(n))
+```
+
+```{r, eval=FALSE}
+# from this 
+flights |> count(tailnum, wt = distance)
+
+# to this 
+flights |> 
+  group_by(tailnum) |> 
+  summarize(n = sum(distance))
+```
+
+## Exercises 13.4.8 {.unnumbered}
+
+### Question 1
+
+> Explain in words what each line of the code used to generate `Figure 13.1` does.
+
+**Solution:**
+
+```{r, eval=FALSE}
+flights |> 
+  
+  group_by(hour = sched_dep_time %/% 100) |>                    # create a new variable named hour with data parsed from sched_dep_time                                                                         
+                                                                # then we group by this new variable for calculations in summarize
+  
+  summarize(prop_cancelled = mean(is.na(dep_time)), n = n()) |> # calculates the proportion of cancelled flights for each hour
+                                                                # calculates the number of flights in each hour
+  
+  filter(hour > 1) |>                                           # look for flights hour after (or equal) 2 AM
+  
+  ggplot(aes(x = hour, y = prop_cancelled)) +                   # plotting hour in the x-axis vs proportion of cancelled 
+                                                                # flights in the y-axis
+  
+  geom_line(color = "grey50") +                                 # connect the pair of points and draw a line connecting them
+  
+  geom_point(aes(size = n))                                     # we add a layer of sized points: the bigger the points the 
+                                                                # more number of flights we find in a specific hour
+
+```
+
+### Question 2
+
+> What trigonometric functions does R provide? Guess some names and look up the documentation. Do they use degrees or radians?
+
+**Solution:**
+
+> At first I thought of `sin` & `cos`. They are both defined in base R as `sin()` and `cos()` and use `radians by default`.
+
+```{r, eval=FALSE}
+# This will NOT give you the expected answer of 1
+sin(90) 
+#> [1] 0.8939967
+
+# This converts 90 degrees to radians first, returning 1
+sin(90 * (pi / 180))
+#> [1] 1
+```
+
+### Question 3
+
+> Currently `dep_time` and `sched_dep_time` are convenient to look at, but hard to compute with because they’re not really continuous numbers. You can see the basic problem by running the code below: there’s a gap between each hour.
+
+```{r}
+flights |> 
+  filter(month == 1, day == 1) |> 
+  ggplot(aes(x = sched_dep_time, y = dep_delay)) +
+  geom_point()
+```
+
+> `Convert` them to a more `truthful representation of time` (either fractional hours or minutes since midnight).
+
+**Solution:**
+
+> You may wonder that the two plots should show the same thing since we are plotting sche_dep_time vs dep_delay on the same day. Yet they are slightly different: the plot above contains `vertical blank spaces on the x-axis`. And you may just think that there are no recorded data at those times as I thought at the first glance. `BUT THE REALITY IS SOMETHING ELSE; SIMPLE YET TRICKY`.
+
+> Well, in the original dataset, `sched_dep_time` is stored as an `integer` that looks like a time;
+
+> - 5:00 AM is recorded as 500
+> - 5:59 AM is recorded as 559
+> - 6:00 AM is recorded as 600
+
+> Because these are standard numbers to ggplot2, it plots them on a regular line. But in the real world, minutes reset at 60. `This means numbers ending in 60 through 99 (like 560, 561, ... 599) simply do not exist in the dataset.` (yet there are flight at 6 AM, 6 AM and a minute...)
+
+> Therefore, every single hour has a `"dead zone"` of 40 numbers where no flights can possibly be scheduled. ggplot2 dutifully leaves empty space for those missing numbers, creating those vertical blank stripes you noticed in the plot above.
+
+```{r}
+flights |> 
+  filter(month == 1, day == 1) |> 
+  mutate(sched_dep_time_hour = sched_dep_time%/%100+( (sched_dep_time%%100)/60 )
+         , dep_delay_hour    = dep_delay/60) |> 
+  ggplot(aes(x = sched_dep_time_hour, y = dep_delay_hour)) +
+  geom_point(size = 1)
+```
+
+### Question 4
+
+> Round `dep_time` and `arr_time` to the nearest five minutes.
+
+**Solution:**
+
+```{r}
+flights |> 
+  mutate(round_dep_time = round(dep_time/5) * 5,
+         round_arr_time = round(arr_time/5) * 5) |> 
+  relocate(round_dep_time, .after = dep_time) |> 
+  relocate(round_arr_time, .after = arr_time) |> 
+  select(year:round_arr_time)
+```
+
+## Exercises 13.5.4 {.unnumbered}
+
+### Question 1
+
+> Find the 10 most delayed flights using a ranking function. How do you want to handle ties? Carefully read the documentation for `min_rank()`.
+
+**Solution:**
+
+> I honestly prefer using `dense_rank` rather than `min_rank`. It serves perfectly the purpose of the question. In this particular data the 10 most delayed flights doesn't contains ties and if it was not the case the code below would show them anyway (`try to slice by 100 and you would notice there are at least one tie with a rank 556`)
+
+```{r}
+flights |> 
+  mutate(rank = dense_rank(arr_delay)) |> 
+  relocate(rank, .after = arr_delay) |> 
+  slice_max(rank, n = 10) |> 
+  arrange(desc(rank))
+```
+
+### Question 2
+
+> Which plane (`tailnum`) has the worst on-time record?
+
+**Solution:**
+
+> It is the basically the same code as above. `So the worst flight in terms of arrival delay was on january day 9 & the place was N384HA`.
+
+```{r}
+flights |> 
+  mutate(rank = dense_rank(arr_delay)) |> 
+  relocate(rank, .after = tailnum) |> 
+  slice_max(rank, n = 1)
+```
+
+### Question 3
+
+> What time of day should you fly if you want to avoid delays as much as possible?
+
+**Solution:**
+
+> Let's plot the average departure delay vs time of day.
+
+> As you can notice, the average departure delay varies throughout the day. The lowest delays tend to occur during early morning hours, with delays increasing as the day progresses, peaking in the late afternoon and evening.
+
+> `So to avoid delays as much as possible, based on data, we recommend flying early in the morning or after 8 PM`.
+
+```{r}
+#| warning: false
+#| layout-ncol: 2
+#| fig-width: 5
+
+# plot
+flights |> 
+  mutate(time_of_day = hour + (minute/60)) |> 
+  group_by(time_of_day) |> 
+  summarise(mean_delay = mean(dep_delay, na.rm = TRUE)) |> 
+  ggplot(aes(x = time_of_day, y = mean_delay)) +
+  geom_point()+
+  geom_smooth(method = "loess")+
+  coord_cartesian(xlim = c(5, 24))
+
+# aggregated information
+flights |> 
+  mutate(time_of_day = hour + (minute/60)) |> 
+  group_by(time_of_day) |> 
+  summarise(mean_delay = mean(dep_delay, na.rm = TRUE))
+
+```
+
+### Question 4
+
+> What does `flights |> group_by(dest) |> filter(row_number() < 4) do? What does flights |> group_by(dest) |> filter(row_number(dep_delay) < 4)` do?
+
+**Solution:**
+
+> The first code extract no more than 3 flights per each destination. Imagine that we filter by each destination and then extract three flights that went to this airoport. that's it.
+
+> In the second code what's important to understand is this: `row_number(dep_delay)` transforms into a ranking function. It evaluates the `dep_delay` column and assigns 1 to the smallest value, 2 to the second smallest, and so on. Therefore, This code filters the dataset to keep the three flights with the `smallest` dep_delay by each destination. `And if you just wanted to keep the first three rows of each group regardless of their delay, you would omit the argument and write: filter(row_number() < 4)`
+
+```{r, eval=FALSE}
+# first code 
+flights |> 
+  group_by(dest) |> 
+  filter(row_number() < 4)
+
+# second code 
+flights |> 
+  group_by(dest) |> 
+  filter(row_number(dep_delay) < 4)
+
+```
+
+### Question 5
+
+> For each destination, compute the total minutes of delay.
+
+> For each flight, compute the proportion of the total delay for its destination.
+
+**Solution:**
+
+```{r}
+# for each destination
+
+# data contains early departure as negative values. We remove them *
+flights |> 
+  group_by(dest) |> 
+  summarise(total_delay = sum(if_else(dep_delay >=0, dep_delay, 0), na.rm = TRUE)) # *
+```
+
+```{r}
+# for each flight 
+
+flights |> 
+  group_by(dest) |> 
+  mutate(total_delay = sum(if_else(dep_delay >=0, dep_delay, 0), na.rm = TRUE),
+         prop_delay  = if_else(dep_delay >= 0, paste0(round(dep_delay/total_delay, digits = 6)*100, c("%")),  "0")
+         ) |> 
+  relocate(prop_delay, .after = dep_delay) |> 
+  relocate(dest, .after = sched_dep_time) |> 
+  relocate(total_delay, .after = sched_dep_time ) |> 
+  select(total_delay:prop_delay)
+```
+
+### Question 6
+
+> Delays are typically temporally correlated: even once the problem that caused the initial delay has been resolved, later flights are delayed to allow earlier flights to leave. Using `lag()`, explore how the average flight delay for an hour is related to the average delay for the previous hour.
+
+```{r}
+flights |> 
+  mutate(hour = dep_time %/% 100) |> 
+  group_by(year, month, day, hour) |> 
+  summarize(
+    dep_delay = mean(dep_delay, na.rm = TRUE),
+    n = n(),
+    .groups = "drop"
+  ) |> 
+  filter(n > 5) |> 
+  mutate(lag = round(dep_delay - lag(dep_delay), digits=3)) |> 
+  relocate(n, .after = lag)
+
+```
+
+**Solution:**
+
+```{r}
+#| warning: false
+#| layout-ncol: 1
+#| fig-width: 10
+
+flights |> 
+  mutate(hour = dep_time %/% 100) |> 
+  group_by(year, month, day, hour) |> 
+  summarize(
+    dep_delay = mean(dep_delay, na.rm = TRUE),
+    n = n(),
+    .groups = "drop"
+  ) |> 
+  filter(n > 5) |> 
+  mutate(lag = dep_delay - lag(dep_delay)) |> 
+  filter(month==1 & day%in% c(1, 2, 3, 4, 5, 6)) |> 
+  ggplot(aes(x = hour, y = lag))+
+  geom_point()+
+  geom_col()+
+  facet_wrap(~day, scales = "free")
+```
+
+### Question 7
+
+> Look at each destination. Can you find flights that are suspiciously fast (i.e. flights that represent a potential data entry error)? Compute the air time of a flight relative to the shortest flight to that destination. Which flights were most delayed in the air?
+
+**Solution:**
+
+> As you may notice, in the boxplot, there is a flight which is incredibly fast given that 650 MPH is an acceptable value that fall into a reasonable range of speeds. The boxplot with its outliers shows this clearly. This anomaly likely stems from a data entry error, such as a severely under-recorded air_time or an exaggerated distance.
+
+```{r}
+#| warning: false
+#| layout-ncol: 2
+#| fig-width: 5
+
+# aggregated data
+flights |>
+  mutate(speed = (distance/air_time)*60 ) |> # speed in miles per hour
+  group_by(dest) |>
+  slice_max(speed, n = 5) |> 
+  relocate(speed, dest)
+
+# distribution of the highsest speeds
+flights |>
+  mutate(speed = (distance/air_time)*60 ) |> # speed in miles per hour
+  group_by(dest) |>
+  slice_max(speed, n = 5) |>
+  ggplot(mapping = aes(y = speed)) +
+  geom_boxplot()
+
+```
+
+> Fell free to inspect the table below (omit the arrange function for grouped results if you want) to see which flights were most delayed in the air. 
+
+```{r}
+# First, calculate the shortest air time for each destination
+flights |> 
+  group_by(dest) |> 
+  mutate(shortest = min(air_time, na.rm = TRUE), 
+         relative = air_time - shortest) |> 
+  relocate(dest, shortest, air_time, relative) |> 
+  slice_max(relative, n=5) |> 
+  arrange(desc(relative))
+
+```
+
+### Question 8 
+
+> Find all destinations that are flown by at least two carriers. Use those destinations to come up with a relative ranking of the carriers based on their performance for the same destination.
+
+**Solution:**
+
+> You find below the code to reveal such insights. Feel free to understand what each line of code does. You can filter to zoom in, arrange in a descending order and so on...
+
+```{r}
+#| warning: false
+#| layout-ncol: 2
+#| fig-width: 5
+
+# summary table
+flights |>
+  group_by(dest) |>
+  summarise(n_carriers = n_distinct(carrier)) |> 
+  filter(n_carriers >= 2) 
+
+# carriers performance for each destination with the corresponding rank within each destination
+flights |>
+  group_by(dest) |>
+  mutate(n_carriers = n_distinct(carrier), 
+         rank = dense_rank(arr_delay)) |> 
+  filter(n_carriers >= 2) |> 
+  relocate(dest, n_carriers, rank, arr_delay)
+```
+
+## Exercises 13.6.7  {.unnumbered}
+
+### Question 1
+
+> Brainstorm at least 5 different ways to assess the typical delay characteristics of a group of flights. When is `mean()` useful? When is `median()` useful? When might you want to use something else? Should you use arrival delay or departure delay? Why might you want to use data from `planes`?
+
+**Solution:**
+
+> Since Hadley brought attention to the `EGE` aireport destination (because there is a sort of oddity in terms of destination values from - EWR & JFK - origin aireports ), we will be studying those flights to reveal deeper insights about this data. the code below shows that the distance between 'EGE' and the other origin aireports changes `slightly` and such a thing is either not correct or to be understood and justified.
+
+```{r}
+#| warning: false
+#| layout-ncol: 2
+#| fig-width: 5
+
+flights |> 
+  group_by(origin, dest) |> 
+  summarize(
+    distance_unique = n_distinct(distance), 
+    distance_values = list(unique(distance)),
+    n = n(),
+    .groups = "drop"
+  ) |> 
+  filter(distance_unique > 1)
+
+flights |> 
+  group_by(origin, dest) |> 
+  filter(n_distinct(distance) > 1) |> 
+  distinct(origin, dest, distance) |> 
+  arrange(origin, dest)
+```
+
+> To answer the question as stated, we will proceed as follows. We may regroup some answers in the same table/plot. So feel free to look for the answer of each of the question in the table/plots below. 
+
+> 1. Calculate the mean departure delay to get the average delay across all flights.
+> 2. Use the median departure delay to understand the central tendency, especially if there are outliers.
+> 3. Compute the mean arrival delay to assess how late flights typically arrive.
+> 4. Analyze the median arrival delay to get a more robust measure of central tendency.
+> 5. Examine the distribution of delays using histograms or box plots to identify patterns and anomalies.
+
+```{r}
+#| warning: false
+#| layout: "[[1], [1, 1]]"
+
+data              <- flights |> 
+                       group_by(origin, dest) |> 
+                       # this filter select immediately the origin-destination wanted
+                       # as the only pairs that fulfills such a condition are : (EWR,EGE) & (JFK,EGE)
+                       filter(n_distinct(distance) > 1) |> 
+                       arrange(origin, dest) |> 
+                       relocate(origin, dest, distance)
+  
+                     
+delay_stats_dep   <- flights |> 
+                       filter(!is.na(dep_delay)) |> 
+                       filter(origin %in% c('EWR', 'JFK') & dest == 'EGE') |> 
+                       summarize(
+                         mean_delay = mean(dep_delay),
+                         median_delay = median(dep_delay), 
+                         q95 = quantile(dep_delay, 0.95)
+                         )
+
+delay_stats_arriv <- flights |> 
+                       filter(!is.na(arr_delay)) |> 
+                       filter(origin %in% c('EWR', 'JFK') & dest == 'EGE') |> 
+                       summarize(
+                         mean_delay = mean(arr_delay),
+                         median_delay = median(arr_delay), 
+                         q95 = quantile(arr_delay, 0.95)
+                         )
+data
+delay_stats_dep
+delay_stats_arriv
+```
+
+
+```{r}
+#| warning: false
+#| layout-ncol: 2
+#| fig-width: 6
+
+# 1-st plot : distribution of departure delays along with their mean, median and 95% percentile
+flights |>
+  filter(!is.na(dep_delay)) |>
+  filter(origin %in% c('EWR', 'JFK') & dest == 'EGE') |> 
+  ggplot(aes(x = dep_delay)) +
+  # Create a histogram with 3-minute bins
+  geom_histogram(binwidth = 3, fill = "lightgray", color = "black") +
+  # We restrict the x-axis to zoom in on the main shape
+  coord_cartesian(xlim = c(-20, 175)) +
+
+  # Add a blue dashed line for the Median
+  geom_vline(
+    xintercept = delay_stats_dep$median_delay,
+    color = "blue", linewidth = 1.2, linetype = "dashed"
+  ) +
+  # Add a red solid line for the Mean
+  geom_vline(
+    xintercept = delay_stats_dep$mean_delay,
+    color = "red", linewidth = 1.2, linetype = "solid"
+  ) +
+  # Add a green solid line for the 95th percentile
+  geom_vline(
+    xintercept = delay_stats_dep$q95,
+    color = "green", linewidth = 1.2, linetype = "solid"
+  ) +
+  labs(
+    title = "The left-Skewed Distribution of Departure Delays",
+    subtitle = "Blue Dashed = Median (-1 mins) | Red Solid = Mean (~15.5 mins)",
+    x = "Departure Delay (minutes)",
+    y = "Number of Flights"
+  )
+
+# 2-nd plot : distribution of arrival delays along with their mean, median and 95% percentile
+flights |>
+  filter(!is.na(arr_delay)) |>
+  filter(origin %in% c('EWR', 'JFK') & dest == 'EGE') |> 
+  ggplot(aes(x = arr_delay)) +
+  # Create a histogram with 3-minute bins
+  geom_histogram(binwidth = 3, fill = "lightgray", color = "black") +
+  # We restrict the x-axis to zoom in on the main shape
+  coord_cartesian(xlim = c(-70, 200)) +
+
+  # Add a blue dashed line for the Median
+  geom_vline(
+    xintercept = delay_stats_arriv$median_delay,
+    color = "blue", linewidth = 1.2, linetype = "dashed"
+  ) +
+  # Add a red solid line for the Mean
+  geom_vline(
+    xintercept = delay_stats_arriv$mean_delay,
+    color = "red", linewidth = 1.2, linetype = "solid"
+  ) +
+  # Add a green solid line for the 95th percentile
+  geom_vline(
+    xintercept = delay_stats_arriv$q95,
+    color = "green", linewidth = 1.2, linetype = "solid"
+  ) +
+  labs(
+    title = "The left-Skewed Distribution of Arrival Delays",
+    subtitle = "Blue Dashed = Median (-4 mins) | Red Solid = Mean (~6.3 mins)",
+    x = "Arrival Delay (minutes)",
+    y = "Number of Flights"
+  )
+```
+
+
+> The `mean()` is useful when the data is symmetric and there are no extreme outliers. The `median()` is more appropriate when the data is skewed or contains outliers.
+> 
+> Departure delay is often used to assess how much flights are delayed in terms of departure times, while arrival delay reflects how late flights arrive at their destinations.
+
+
+### Question 2 
+
+> Which destinations show the greatest variation in air speed?
+
+**Solution:**
+
+> `Standard deviation` (SD) is a measurement of consistency. It tells you how spread out your data is around the average (mean).
+
+> In the table below, the standard deviation for flights to `OKC` is roughly `38`.
+>
+> Because the speed is measured in Miles Per Hour (MPH), the standard deviation is also in MPH. This means that if you look at a random flight going from New York to OKC, `its speed will typically bounce around 38 MPH faster or 38 MPH slower than the average speed for that route`.
+
+```{r}
+flights |>
+  mutate(speed = (distance/air_time)*60 ) |> # speed in miles per hour
+  group_by(dest) |> 
+  summarize(standar_deviation = sd(speed, na.rm = TRUE)) |> 
+  arrange(desc(standar_deviation))
+```
+
+
+### Question 3 
+
+> Create a plot to further explore the adventures of EGE. Can you find any evidence that the airport moved locations? Can you find another variable that might explain the difference?
+
+**Solution:**
+
+> As you may notice, the 1-mile difference for each origin completely disproves the "airport moved" hypothesis. If an airport relocates, it moves across a city or county, not 5,280 feet down the road. A reasonable explanation could be that The exact distance might be 1744.5 miles(for flights coming from JFK). One airline's system rounds up to 1745, while another rounds down to 1744.
+
+```{r}
+flights |> 
+  filter(dest == "EGE") |> 
+  ggplot(aes(x = hour+(minute/60), y = distance, color = carrier)) +
+  geom_jitter(height = 0, width = 0.6, size = 3, alpha = 0.7) +
+  labs(
+    title = "Recorded Flight Distances to EGE (2013)",
+    subtitle = "Investigating the 1-mile discrepancy by carrier",
+    x = "Date of Flight",
+    y = "Recorded Distance (Miles)",
+    color = "Airline"
+  ) +
+  theme_minimal()
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

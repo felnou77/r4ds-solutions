@@ -35,6 +35,7 @@ book:
     - eda.qmd
     - comm.qmd
     - lv.qmd
+    - nbr.qmd
 
 format:
   html:
