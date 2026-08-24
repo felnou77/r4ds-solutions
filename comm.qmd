@@ -427,6 +427,10 @@ ggplot(diamonds, aes(x = carat, y = price)) +
 > What happens if you omit the parentheses in the following plot layout. Can you explain why this happens?
 
 ```{r}
+#| warning: false
+#| layout-ncol: 1
+#| fig-width: 10
+
 p1 <- ggplot(mpg, aes(x = displ, y = hwy)) + 
   geom_point() + 
   labs(title = "Plot 1")
@@ -453,6 +457,10 @@ p1 | p2 / p3
 **Solution:**
 
 ```{r}
+#| warning: false
+#| layout-ncol: 1
+#| fig-width: 10
+
 library(ggplot2)
 library(patchwork)
 
