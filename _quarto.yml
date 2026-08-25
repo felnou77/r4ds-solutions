@@ -35,13 +35,13 @@ book:
     - eda.qmd
     - comm.qmd
     - lv.qmd
-    - nbr.qmd
+    - numbers.qmd
+    - strings.qmd
 
 format:
   html:
-    theme:
-      light: cosmo
-      dark: darkly 
+    theme: cosmo
+    css: custom.css
     code-fold: show
     code-tools: true
     df-print: paged

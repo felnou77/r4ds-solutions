@@ -1,0 +1,190 @@
+---
+title: "Strings"
+format: html
+---
+
+## Exercises 14.2.4 {.unnumbered}
+
+### Question 1
+
+> Create strings that contain the following values: 
+
+> - `He said "That's amazing!"` 
+> - `\a\b\c\d`
+> - `\\\\\\`
+
+**Solution:**
+
+```{r, eval=FALSE}
+str_view(r"(He said "That's amazing!")")
+#> [1] │ He said "That's amazing!"
+
+str_view(r"(\a\b\c\d)")
+#> [1] │ \a\b\c\d
+
+str_view(r"(\\\\\\)")
+#> [1] │ \\\\\\
+```
+
+### Question 2 
+
+> Create the string in your R session and print it. What happens to the special “\u00a0”? How does str_view() display it? Can you do a little googling to figure out what this special character is?
+
+**Solution:**
+
+```{r, eval=FALSE}
+str_view("\u00a0")
+# [1] │ This{\u00a0}is{\u00a0}tricky
+```
+
+> What `\u00a0` does is the following : 
+
+> `Visually`: It looks absolutely identical to a normal space. If you print it to your console, you just see a blank gap between two words.
+>
+> `Functionally`: In web development and word processing, it acts like `glue`. It tells the computer, "Do not ever put a line break between these two words." It is used to keep things together that shouldn't be split across two lines of text (like "100 kg" or "Mr. Smith").
+
+
+## Exercises 14.3.4  {.unnumbered}
+
+### Question 1 
+
+> Compare and contrast the results of `paste0()` with `str_c()` for the following inputs:
+
+```{r, eval=FALSE}
+str_c("hi ", NA)
+str_c(letters[1:2], letters[1:3])
+```
+
+**Solution:**
+
+> Despite the fact that `str_c()` and `paste0()`, both of them in regular cases, concatenate strings side_by_side. They behave differently when handling missing values or when dealing with vector of strings of different lengths. In the case of missing values, `str_c()` simply returns NA as described and studied so far in the book. `paste0()` transforms it literally to a string as 'NA'.
+
+  > In the other case, when given two vectors of strings with different lengths, `str_c()` raises an error: such a behavior was expected since `str_c()` is designed to be used alongwith mutate (as an outpuut we expect a column with the same length). `paste0()` simply concatenates the shorter vector with every element of the longer one by picking again and again, with evidently respecting the order of the elements in the vector, the strings from the shorter vector. The code below explicitly shows this behavior. 
+
+```{r, eval=FALSE}
+#paste0() picked again the letter 'a' ('a' precedes 'b') to continue with concatenating - only a string was needed
+paste0(letters[1:2], letters[1:3])
+#> [1] "aa" "bb" "ac"
+
+#paste0() picked again the letter 'a' and 'b' to continue with concatenating - only 2 strings were needed
+paste0(letters[1:2], letters[1:4])
+#> [1] "aa" "bb" "ac" "bd"
+```
+
+
+### Question 2 
+
+> What’s the difference between `paste()` and `paste0()`? How can you recreate the equivalent of `paste()` with `str_c()`?
+
+**Solution:**
+
+> The only difference is what they put between the words you are gluing together. The `paste()` function adds a space by default, while `paste0()` adds no separator. To recreate `paste()` with `str_c()`, you can use `str_c()` with the `sep` argument set to a `space`.
+
+### Question 3 
+
+> Convert the following expressions from `str_c()` to `str_glue()` or vice versa:
+
+> - `str_c("The price of ", food, " is ", price)`           *
+> - `str_glue("I'm {age} years old and live in {country}")` **
+> - `str_c("\\section{", title, "}")`                       ***
+
+**Solution:**
+
+```{r, eval=FALSE}
+str_glue("The price of "{food}" is "{price})          # *
+str_c("I'm ", age, "years old and live in ", country) # **
+str_glue("\\section{{{d}}}")                          # ***
+```
+
+## Exercises 14.5.3   {.unnumbered}
+
+### Question 1
+
+> When computing the distribution of the length of babynames, why did we use `wt = n`?
+
+**Solution:**
+
+> In the babynames dataset, one row does not represent one baby. Instead, a row represents a summarized historical record. For example, a single row might represent the data: "In 1880, the name 'Mary' was given to 7065 female babies." That total number (7065) is stored in the column named n.
+
+> If you used standard `count()`, R would look at that row for "Mary" and count it as 1. It would just be telling you how many rows exist in the spreadsheet.
+>
+> By using `count(wt = n)`, R uses the n column as the weight. It looks at the row for "Mary" and counts it as 7065.
+
+### Question 2 
+
+> Use `str_length()` and `str_sub()` to extract the middle letter from each baby name. What will you do if the string has an even number of characters?
+
+**Solution:**
+
+```{r}
+library(babynames)
+library(tidyverse)
+
+# return exactly the middle letter if the length is odd
+# otherwise returns 2 concatenated letters : the first and the second letter indicate respectively 
+# that we have exactly half of letters before and after it.
+
+# for example : 'Ali' ----> 'l'  (odd number,  3 letters)
+# and         : 'Alie' ---> 'li' (even number, 4 letters) (two parts : 'Al' & 'ie')
+
+# so whenever you encounter 2 letters as an output in the new column, you quickly think that this name contains an even number of letters
+
+# feel free, for example, to modify the if_else third argument to return an empty character string to say that such a middle letter 
+# does not exist in this name
+
+babynames |> 
+  mutate(middle_letter = if_else(str_length(name)%%2==1,str_sub(name,str_length(name)%/%2+1,str_length(name)%/%2+1),            
+                                 str_sub(name,str_length(name)%/%2,str_length(name)%/%2+1)
+                                 )
+         )
+```
+
+
+### Question 3 
+
+> Are there any major trends in the length of babynames over time? What about the popularity of first and last letters?
+
+**Solution:**
+
+```{r}
+# let's plot the length of babynames overtime and inspect if there is any trends that catch the eye
+
+library(ggplot2)
+
+babynames |> 
+  group_by(year) |> 
+  summarise(mean_length_name = mean(str_length(name))) |> 
+  ggplot(aes(x = year, y = mean_length_name)) + 
+  geom_line() + 
+  labs(title = "Average Name Length Over Time") + 
+  theme_minimal()
+```
+
+> As you may notice, names length is increasing overtime. That means, that parents started to name differently their babies (new and longer names have been adopted over time).
+
+```{r}
+#| warning: false
+#| layout-ncol: 2
+#| fig-width: 5
+
+# as shown below, names starting or ending with 'A'  with are the most popular
+
+babynames |> 
+  mutate(
+    first = str_sub(name, 1, 1),
+    last = str_sub(name, -1, -1)
+  ) |> 
+  count(first) |> 
+  arrange(desc(n))
+
+babynames |> 
+  mutate(
+    first = str_sub(name, 1, 1),
+    last = str_sub(name, -1, -1)
+  ) |> 
+  count(last) |> 
+  arrange(desc(n))
+```
+
+
+
