@@ -1,0 +1,288 @@
+---
+title: "Regular expressions"
+format: html
+---
+
+## Exercises 15.3.5 {.unnumbered}
+
+### Question 1 
+
+> What baby name has the most vowels? What name has the highest proportion of vowels? (Hint: what is the denominator?)
+
+**Solution:**
+
+> As you may notice in the right table, I admit that such names are bizzare to me (100% proportion of vowels) which made me think of how they are pronounced. You can also tell that such names are short and that's reasonable because more syllables often involve more consonants.
+>
+> Let's explore more in depth the adoption of such names over time.
+
+```{r}
+#| warning: false
+#| layout: "[[1], [1, 1]]"
+#| fig-width: 10
+#| fig-height: 5
+
+library(babynames)
+library(tidyverse)
+library(stringr)
+library(ggplot2)
+
+# Evolution of adoption of those names over time
+babynames |> 
+  mutate(
+    vowels = str_count(name, "[aeiouAEIOU]"),
+    total_letters = str_length(name), 
+    proportion = vowels / total_letters
+  ) |> 
+  filter(proportion == 1) |>  
+  ggplot(aes(x=year, y=n))+
+  geom_point()+
+  geom_line()+ 
+  facet_wrap(~name, scales = 'free')
+
+# Create a smaller dataset of just the unique names
+unique_names <- babynames |> 
+  distinct(name)
+
+# 1. Which baby name has the most vowels?
+unique_names |> 
+  mutate(vowels = str_count(name, "[aeiouAEIOU]")) |> 
+  arrange(desc(vowels)) |> 
+  head(5)
+
+
+# 2. Which name has the highest proportion of vowels?
+unique_names |> 
+  mutate(
+    vowels = str_count(name, "[aeiouAEIOU]"),
+    total_letters = str_length(name),       # <-- Here is your denominator!
+    proportion = vowels / total_letters
+  ) |> 
+  arrange(desc(proportion)) |> 
+  head(5)
+```
+
+### Question 2 
+
+> Replace all forward slashes in `"a/b/c/d/e"` with backslashes. What happens if you attempt to undo the transformation by replacing all backslashes with forward slashes? (We’ll discuss the problem very soon.)
+
+**Solution:**
+
+```{r, eval=FALSE}
+forward_string <- "a/b/c/d/e"
+
+# 1. Replace forward slashes with backslashes
+back_string <- str_replace_all(forward_string, "/", "\\\\")
+
+back_string
+#> [1] "a\\b\\c\\d\\e"
+
+# The successful undo
+str_replace_all(back_string, "\\\\", "/")
+#> [1] "a/b/c/d/e"
+```
+
+### Question 3 
+
+> Implement a simple version of `str_to_lower()` using `str_replace_all()`.
+
+**Solution:**
+
+```{r, eval=FALSE}
+# The string we want to convert
+my_string <- "R for Data Science is AWESOME!"
+
+# Create a translation dictionary linking UPPER to lower
+lower_map <- setNames(letters, LETTERS)
+
+# Apply the replacement
+str_replace_all(my_string, lower_map)
+#> [1] "r for data science is awesome!"
+```
+
+
+### Question 4 
+
+> Create a regular expression that will match telephone numbers as commonly written in your country.
+
+**Solution:**
+
+> Feel free to inspect the pattern to understand in depth what each of its components does. Note that If you remove the `^` (`start`) and `$` (`end`) anchors, you completely change the behavior of the regex from a validator to a search party.
+>
+> When you use anchors, you are telling R: "`This string must be a phone number and absolutely nothing else`." When you remove them, you are telling R: "`Scan this string and see if a phone number is hiding somewhere inside it`."
+
+```{r, eval=FALSE}
+my_moroccan_numbers <- c(
+  "+212678174597",
+  "0678174597",
+  "06 78 17 45 97",
+  "+212 6 78 17 45 97"
+)
+
+# The flexible Moroccan phone number pattern
+moroccan_pattern <- "^(\\+212 ?|0)\\d ?(\\d{2} ?){3}\\d{2}$"
+
+# Test the pattern against my example
+str_detect(my_moroccan_numbers, moroccan_pattern)
+#> [1] TRUE TRUE TRUE TRUE
+```
+
+
+## Exercises 15.4.7 {.unnumbered}
+
+### Question 1 
+
+> How would you match the literal string `"'\`? How about `"$^$"`?
+
+**Solution:**
+
+```{r, eval=FALSE}
+# 1. Matching the literal string: "'\?
+# (Defining the target string in R requires escaping the quote and backslash)
+target_1 <- "\"'\\?" 
+
+pattern_1 <- "\"'\\\\\\?"
+str_detect(target_1, pattern_1)
+#> [1] TRUE
+
+
+# 2. Matching the literal string: "$^$"
+# (Defining the target string requires escaping the double quotes)
+target_2 <- "\"$^$\"" 
+
+pattern_2 <- "\"\\$\\^\\$\""
+str_detect(target_2, pattern_2)
+#> [1] TRUE
+```
+
+### Question 2 
+
+> Explain why each of these patterns don’t match a \: `"\"`, `"\\"`, `"\\\"`.
+
+**Solution:**
+
+> To make it work and conceive a pattern that searches for a literal backslash in your text you have to use four backslashes: `"\\\\"`.
+
+> Base R reads the first pair as one \ and the second pair as one \.
+> Base R then hands \\ to the Regex engine.
+> The Regex engine reads the first \ as an escape for the second \, successfully matching exactly one literal backslash in your text !
+
+### Question 3 
+
+> Given the corpus of common words in `stringr::words`, create regular expressions that find all words that:
+
+> - Start with “y”.
+> - Don’t start with “y”.
+> - End with “x”.
+> - Are exactly three letters long. (Don’t cheat by using str_length()!)
+> - Have seven letters or more.
+> - Contain a vowel-consonant pair.
+> - Contain at least two vowel-consonant pairs in a row.
+> - Only consist of repeated vowel-consonant pairs.
+
+**Solution:**
+
+```{r, eval=FALSE}
+# a) Find all words starting with "y"
+str_subset(words, "^y")
+#---------------------------------------------------------------------------------------------------------------
+
+# b) we simply set negate to TRUE to invert the resulting Boolean vector
+str_subset(words, "^y", negate = TRUE)
+
+# or with pure regex, we use the caret inside brackets 
+str_subset(words, "^[^y]")
+#---------------------------------------------------------------------------------------------------------------
+
+# c) Find all words ending with "x"
+str_subset(words, "x$")
+#---------------------------------------------------------------------------------------------------------------
+
+# d) Using the dot repeatedly exactly three times
+str_subset(words, "^...$")
+#---------------------------------------------------------------------------------------------------------------
+
+# e) Match at least 7 of these in a row,
+str_subset(words, ".{7,}")
+#---------------------------------------------------------------------------------------------------------------
+
+# f)Find words containing a vowel immediately followed by a consonant
+str_subset(words, "[aeiou][^aeiou]")
+#---------------------------------------------------------------------------------------------------------------
+
+# g) Using parentheses and a multiplier
+str_subset(words, "([aeiou][^aeiou]){2}")
+#---------------------------------------------------------------------------------------------------------------
+
+# h) Find words made entirely of vowel-consonant pairs
+str_subset(words, "^([aeiou][^aeiou]){1,}$")
+```
+
+### Question 4 
+
+> Create 11 regular expressions that match the British or American spellings for each of the following words: airplane/aeroplane, aluminum/aluminium, analog/analogue, ass/arse, center/centre, defense/defence, donut/doughnut, gray/grey, modeling/modelling, skeptic/sceptic, summarize/summarise. Try and make the shortest possible regex!
+
+**Solution:**
+
+```{r, eval=FALSE}
+# The 11 Regex Patterns
+patterns <- c(
+  airplane_aeroplane  = "a(ir|ero)plane",
+  aluminum_aluminium  = "alumini?um",
+  analog_analogue     = "analog(ue)?",
+  ass_arse            = "a(ss|rse)",
+  center_centre       = "cent(er|re)",
+  defense_defence     = "defen[cs]e",
+  donut_doughnut      = "do(ugh)?nut",
+  gray_grey           = "gr[ae]y",
+  modeling_modelling  = "modell?ing",
+  skeptic_sceptic     = "s[ck]eptic",
+  summarize_summarise = "summari[zs]e"
+)
+```
+
+### Question 5
+
+> Switch the first and last letters in words. Which of those strings are still words?
+
+**Solution:**
+
+```{r,eval=FALSE}
+# Switch the first and last letters using str_replace()
+switched_words <- str_replace(words, "^(.)(.*)(.)$", "\\3\\2\\1")
+
+# Let's look at the first 5 words to see what happened
+head(switched_words, 5)
+#> [1] "a"        "ebla"     "tboua"    "ebsoluta" "tccepa"
+
+# Which of these new strings are still real words?
+intersect(switched_words, words)
+#> [1] "a"          "america"    "area"       "dad"        "dead"      
+#> [6] "lead"       "read"       "depend"     "god"        "educate"   
+#> [11] "else"       "encourage"  "engine"     "europe"     "evidence"  
+#> [16] "example"    "excuse"     "exercise"   "expense"    "experience"
+#> [21] "eye"        "dog"        "health"     "high"       "knock"     
+#> [26] "deal"       "level"      "local"      "nation"     "on"        
+#> [31] "non"        "no"         "rather"     "dear"       "refer"     
+#> [36] "remember"   "serious"    "stairs"     "test"       "tonight"   
+#> [41] "transport"  "treat"      "trust"      "window"     "yesterday"
+```
+
+### Question 6
+
+> Describe in words what these regular expressions match: (read carefully to see if each entry is a regular expression or a string that defines a regular expression.)
+
+**Solution:**
+
+> - `^.*$` : This is a regular expression. It matches any string entirely, including an empty string. It essentially says: "Start at the beginning, match absolutely anything (or nothing) in the middle, and then end."
+
+> - `"\\{.+\\}"` : This is an R string that defines a regular expression. It matches any text enclosed in curly braces containing at least one character. For example, it will match `"{a}"`, `"{123}"`, or `"{word}"`, but it will not match an empty set of braces like `"{}"`.
+
+> - \d{4}-\d{2}-\d{2} : This is a regular expression. It matches a sequence of four digits, a hyphen, two digits, another hyphen, and two digits. This is most commonly used to match dates in the standard `YYYY-MM-DD format`, such as `2026-08-26`.
+
+> - "\\\\{4}" : This is an R string that defines a regular expression. It matches exactly four literal backslashes in a row (e.g., `\\\\`)
+
+> - \..\..\.. : This is a regular expression. It matches a sequence of a literal dot, followed by any single character, repeated three times.
+
+> - (.)\1\1 : This is a regular expression. It matches any single character repeated three times in a row.
+
+> - "(..)\\1" : This is an R string that defines a regular expression. It matches any two characters repeated twice in a row.
