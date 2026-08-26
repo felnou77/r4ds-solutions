@@ -37,6 +37,7 @@ book:
     - lv.qmd
     - numbers.qmd
     - strings.qmd
+    - regex.qmd
 
 format:
   html:
