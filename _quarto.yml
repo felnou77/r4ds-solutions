@@ -38,6 +38,7 @@ book:
     - numbers.qmd
     - strings.qmd
     - regex.qmd
+    - factors.qmd
 
 format:
   html:
