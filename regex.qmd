@@ -286,3 +286,130 @@ intersect(switched_words, words)
 > - (.)\1\1 : This is a regular expression. It matches any single character repeated three times in a row.
 
 > - "(..)\\1" : This is an R string that defines a regular expression. It matches any two characters repeated twice in a row.
+
+## Exercises 15.6.4  {.unnumbered}
+
+### Question 1 
+
+> For each of the following challenges, try solving it by using both a `single regular expression`, and a combination of multiple `str_detect()` calls.
+
+**Solution:**
+
+> Find all `words` that start or end with `x`.
+
+```{r, eval=FALSE}
+# Option 1: The Single Regular Expression
+str_subset(words, "^x|x$")
+#> [1] "box" "sex" "six" "tax"
+
+# Option 2: Multiple str_detect() calls
+words[str_detect(words, "^x") | str_detect(words, "x$")]
+#> [1] "box" "sex" "six" "tax"
+```
+
+> Find all `words` that start with a `vowel` and end with a `consonant`.
+
+```{r, eval=FALSE}
+# Option 1: The Single Regular Expression
+str_subset(words, "^[aeiou].*[^aeiou]$") |> 
+  head(10)
+#>  [1] "about"   "accept"  "account" "across"  "act"     "actual"  "add"     "address" "admit"   "affect"      
+
+# Option 2: Multiple str_detect() calls
+words[str_detect(words, "^[aeiou]") & str_detect(words, "[^aeiou]$")] |> 
+  head(10)
+#>  [1] "about"   "accept"  "account" "across"  "act"     "actual"  "add"     "address" "admit"   "affect" 
+```
+
+> Are there any words that contain at least one of each different vowel?
+
+```{r, eval=FALSE}
+words[
+  str_detect(words, "a") & 
+  str_detect(words, "e") & 
+  str_detect(words, "i") & 
+  str_detect(words, "o") & 
+  str_detect(words, "u")
+]
+#> character(0)
+```
+
+### Question 2
+
+> Construct patterns to find evidence for and against the rule “i before e except after c”?
+
+**Solution:**
+
+```{r, eval=FALSE}
+
+# 1. Evidence FOR the rule
+# "ie" when not preceded by "c"
+for_rule_1 <- str_subset(words, "[^c]ie")
+# "ei" when preceded by "c"
+for_rule_2 <- str_subset(words, "cei")
+
+# 2. Evidence AGAINST the rule
+# "ie" when preceded by "c" (e.g., science)
+against_rule_1 <- str_subset(words, "cie")
+# "ei" when not preceded by "c" (e.g., weigh)
+against_rule_2 <- str_subset(words, "[^c]ei")
+
+# Let's see some rule-breakers in the dataset!
+head(against_rule_1) 
+#> [1] "science" "society"
+head(against_rule_2)
+#> [1] "weigh"
+```
+
+
+### Question 3 
+
+> `colors()` contains a number of modifiers like “lightgray” and “darkblue”. How could you automatically identify these modifiers? (Think about how you might detect and then remove the colors that are modified).
+
+**Solution:**
+
+```{r}
+# 1. Clean the list by removing all numbers (so "blue1" just becomes "blue")
+cols <- unique(str_remove_all(colors(), "\\d+"))
+
+# 2. Create a giant Regex "dictionary" of every clean color
+# It creates a massive OR list: "(white|aliceblue|antiquewhite|...)"
+color_dict <- str_c(cols, collapse = "|")
+
+# 3. Build a pattern with two capture groups to force a split:
+# Group 1: The modifier (^.+ means start with at least one character)
+# Group 2: The base color (must end the string)
+pattern <- str_glue("^(.+)({color_dict})$")
+
+# 4. Filter for only the colors that successfully split into these two groups
+modified_colors <- str_subset(cols, pattern)
+
+# 5. Extract the modifiers by replacing the whole word with just Group 1
+modifiers <- str_replace(modified_colors, pattern, "\\1")
+
+# Look at the unique modifiers we extracted!
+head(unique(modifiers))
+```
+### Question 4 
+
+> Create a regular expression that finds any base R dataset. You can get a list of these datasets via a special use of the data() function: data(package = "datasets")$results[, "Item"]. Note that a number of old datasets are individual vectors; these contain the name of the grouping “data frame” in parentheses, so you’ll need to strip those off.
+
+**Solution:**
+
+```{r,eval=FALSE}
+# 1. Get the raw dataset names
+raw_datasets <- data(package = "datasets")$results[, "Item"]
+
+# 2. Strip off the space and parentheses for the grouped datasets
+clean_datasets <- str_remove(raw_datasets, " \\(.*\\)")
+
+# 3. Remove any duplicates that might have been created
+clean_datasets <- unique(clean_datasets)
+
+# 4. Collapse them into a giant OR string
+dataset_dict <- str_c(clean_datasets, collapse = "|")
+
+# 5. Wrap the giant dictionary in Word Boundaries to prevent partial matches
+final_regex <- str_glue("\\b({dataset_dict})\\b")
+```
+
