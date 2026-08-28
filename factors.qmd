@@ -1,0 +1,94 @@
+---
+title: "Factors"
+format: html
+---
+
+## Exercises 16.3.1   {.unnumbered}
+
+### Question 1 
+
+> Explore the distribution of `rincome` (reported income). What makes the default bar chart hard to understand? How could you improve the plot?
+
+**Solution:**
+
+> As you may notice if we ever want to plot categories on the x axis, given their strings length, they become stacked one beside each other which leads to unpleasing visibility. To make it look better, we simply the axes.
+
+```{r}
+#| warning: false
+#| layout-ncol: 2
+#| fig-width: 5
+
+library(ggplot2)
+library(tidyverse)
+
+# first plot: categories on the x-axis
+gss_cat |> 
+  count(rincome) |> 
+  ggplot(aes(x = rincome, y = n )) + 
+  geom_col() + 
+  labs(title = "Distribution of Reported Income", x = "Income Category", y = "Count")
+
+# second plot: categories on the y-axis
+gss_cat |> 
+  count(rincome) |> 
+  ggplot(aes(x = n, y = rincome)) + 
+  geom_col() + 
+  labs(title = "Distribution of Reported Income", x = "Count", y = "Income Category" )
+```
+
+### Question 2 
+
+> What is the most common `relig` in this survey? What’s the most common `partyid`?
+
+**Solution:**
+
+```{r}
+#| warning: false
+#| layout-ncol: 2
+#| fig-width: 5
+
+# the most common religions
+gss_cat |> 
+  count(relig) |> 
+  arrange(desc(n)) |> 
+  head(5)
+
+# the most common party affiliation
+gss_cat |> 
+  count(partyid) |> 
+  arrange(desc(n)) |> 
+  head(5)
+```
+### Question 3 
+
+> Which relig does denom (denomination) apply to? How can you find out with a table? How can you find out with a visualization?
+
+**Solution:**
+
+> It is pretty straghtforward from the table. When inspecting the plotn we confirm our findings in the table. almost every religion defaults to the category 'not applicable' except `protestant`, `christian` ...
+
+```{r}
+# Count all combinations of religion and denomination
+gss_cat |> 
+  count(relig, denom) |> 
+  # Remove the rows where denomination was marked "Not applicable"
+  filter(denom != "Not applicable") |> 
+  # Look at which religions remain
+  distinct(relig)
+
+gss_cat |> 
+  count(relig, denom) |> 
+  ggplot(aes(x = relig, y = denom, size = n)) +
+  geom_point(color = "steelblue") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+```{r}
+by_age <- gss_cat |>
+  filter(!is.na(age)) |>
+  count(age, marital) |>
+  group_by(age) |>
+  mutate(
+    prop = n / sum(n)
+  )
+```
+
