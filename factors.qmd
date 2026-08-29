@@ -65,7 +65,7 @@ gss_cat |>
 
 **Solution:**
 
-> It is pretty straghtforward from the table. When inspecting the plotn we confirm our findings in the table. almost every religion defaults to the category 'not applicable' except `protestant`, `christian` ...
+> It is pretty straghtforward from the table. When inspecting the plot we confirm our findings in the table. almost every religion defaults to the category 'not applicable' except `protestant`, `christian` ...
 
 ```{r}
 # Count all combinations of religion and denomination
@@ -82,13 +82,136 @@ gss_cat |>
   geom_point(color = "steelblue") +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
+
+## Exercises 16.4.1    {.unnumbered}
+
+### Question 1
+
+> There are some suspiciously high numbers in tvhours. Is the mean a good summary?
+
+**Solution:**
+
+> As you know, the mean is sensible to outliers : and there are some of them in our data (20, 24 hours of tvhours). The mean and the median are close to each other in this case which means that the mean is still a reasonable summary for our data.
+
 ```{r}
-by_age <- gss_cat |>
-  filter(!is.na(age)) |>
-  count(age, marital) |>
-  group_by(age) |>
+# Summary stats of tvhours
+summary(gss_cat$tvhours)
+```
+
+```{r}
+# Distribution of tv hours along with its mean and median
+ggplot(gss_cat, aes(x = tvhours))+
+  geom_histogram(binwidth = 0.4, fill = 'lightblue')+
+  geom_vline(
+    xintercept = summary(gss_cat$tvhours)['Median'],
+    color = "blue", linewidth = 1.2, linetype = "dashed"
+  ) +
+  geom_vline(
+    xintercept = summary(gss_cat$tvhours)['Mean'],
+    color = "red", linewidth = 1.2, linetype = "solid"
+  ) +
+  annotate(
+    geom = "label", x = 10, y = 2500,
+    label = "Mean",
+    hjust = "left", color = "red"
+  ) +
+  annotate(
+    geom = "segment",
+    x = 10, y = 2480, xend = 2.98, yend = 2480, color = "red",
+    arrow = arrow(type = "closed", angle = 10)
+  ) +
+  annotate(
+    geom = "label", x = 10, y = 1800,
+    label = "Median",
+    hjust = "left", color = "steelblue"
+  ) +
+  annotate(
+    geom = "segment",
+    x = 10, y = 1800, xend = 2, yend = 1800, color = "steelblue",
+    arrow = arrow(type = "closed", angle = 10)
+  ) +
+  annotate(
+    geom = "label", x = 19, y = 2000,
+    label = "Outliers",
+    hjust = "left", color = "violet"
+  ) +
+  annotate(
+    geom = "segment",
+    x = 22, y = 1850, xend = 22, yend = 400, color = "violet",
+    arrow = arrow(type = "closed", angle = 10)
+  ) +
+  theme_minimal()
+```
+
+### Question 2 
+
+> For each factor in `gss_cat` identify whether the order of the levels is arbitrary or principled.
+
+**Solution:**
+
+> clearly (marital, race, partyid, relig and denom) are categorical variables whose levels are arbitrarily ordered
+> rincome is a categorical variable whose levels are principled.
+
+### Question 3 
+
+> Why did moving “Not applicable” to the front of the levels move it to the bottom of the plot?
+
+**Solution:**
+
+> `ggplot2` builds its y-axis from the bottom up. When `fct_relevel()` pushes "Not applicable" to the very front of the factor's internal list (making it Level 1), ggplot2 anchors it to the lowest starting point on the y-axis
+
+## Exercises 16.5.1     {.unnumbered}
+
+### Question 1 
+
+> How have the proportions of people identifying as `Democrat`, `Republican`, and `Independent` changed over time?
+
+**Solution:**
+
+> The plot below shows that such a change is far from being considered as significant. The overall proportions remained practically the same over the years. 
+
+```{r}
+gss_cat |>
   mutate(
-    prop = n / sum(n)
+    partyid = fct_collapse(partyid,
+      "other" = c("No answer", "Don't know", "Other party"),
+      "rep" = c("Strong republican", "Not str republican"),
+      "ind" = c("Ind,near rep", "Independent", "Ind,near dem"),
+      "dem" = c("Not str democrat", "Strong democrat")
+    )
+  ) |> 
+  filter(partyid != "other") |> 
+  count(year, partyid) |> 
+  mutate(prop = n / sum(n), .by = year) |> 
+  ggplot(aes(x = year, y = prop, fill = partyid)) +
+  geom_col(position = "dodge") +
+  scale_x_continuous(breaks = unique(gss_cat$year))+
+  theme_minimal()
+  
+```
+### Question 2 
+
+> How could you collapse rincome into a small set of categories?
+
+**Solution:**
+
+> I would let the levels that indicate salary ranges intact and I would collapse what's left into "Other". 
+
+```{r, eval=FALSE}
+gss_cat |>
+  mutate(
+    rincome = fct_collapse(rincome,"Other" = c("No answer", "Not applicable", "Refused", "Don't know"))
   )
 ```
 
+### Question 3 
+
+> Notice there are 9 groups (excluding other) in the fct_lump example above. Why not 10? (Hint: type ?fct_lump, and find the default for the argument other_level is “Other”.)
+
+**Solution:**
+
+> The original relig column already contains a category explicitly named "Other".
+
+> When we run `fct_lump_n(n = 10)`, the function attempts to preserve the 10 most common categories and sweep the rest into a new pile which defaults to the name "Other". Because the original "Other" response is already one of the top 10 most popular answers in the dataset, R simply merges the newly lumped tiny religions into that pre-existing "Other" category. Literally, the final "Other" contains already the first categorie named also 'Other'.
+
+> As a result, we are left with exactly 10 rows: 9 specific, highly popular religions, plus 1 massive "Other" category that holds both the original survey responses and the newly lumped data.
