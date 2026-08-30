@@ -15,7 +15,7 @@ ymd(c("2010-10-10", "bananas"))
 
 **Solution:**
 
-> It simply fails to parse/transform it into a valid date.
+> It simply fails to parse/transform it into a valid date (here it recognize the first element and raise an error at the second)
 
 ### Question 2 
 
