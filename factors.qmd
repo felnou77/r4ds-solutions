@@ -195,7 +195,7 @@ gss_cat |>
 
 **Solution:**
 
-> I would let the levels that indicate salary ranges intact and I would collapse what's left into "Other". 
+> I would let the levels that indicate salary ranges intact and I would collapse what's left into `"Other"`. 
 
 ```{r, eval=FALSE}
 gss_cat |>
@@ -206,7 +206,7 @@ gss_cat |>
 
 ### Question 3 
 
-> Notice there are 9 groups (excluding other) in the fct_lump example above. Why not 10? (Hint: type ?fct_lump, and find the default for the argument other_level is “Other”.)
+> Notice there are 9 groups (excluding other) in the fct_lump example above. Why not 10? (Hint: type `?fct_lump`, and find the default for the `argument other_level is “Other”`.)
 
 **Solution:**
 
@@ -214,4 +214,4 @@ gss_cat |>
 
 > When we run `fct_lump_n(n = 10)`, the function attempts to preserve the 10 most common categories and sweep the rest into a new pile which defaults to the name "Other". Because the original "Other" response is already one of the top 10 most popular answers in the dataset, R simply merges the newly lumped tiny religions into that pre-existing "Other" category. Literally, the final "Other" contains already the first categorie named also 'Other'.
 
-> As a result, we are left with exactly 10 rows: 9 specific, highly popular religions, plus 1 massive "Other" category that holds both the original survey responses and the newly lumped data.
+> As a result, we are left with exactly 10 rows: 9 specific, highly popular religions, plus 1 massive `"Other" category` that holds both the original survey responses and the newly lumped data.
