@@ -11,7 +11,7 @@ format: html
 
 **Solution:**
 
-> As you may notice if we ever want to plot categories on the x axis, given their strings length, they become stacked one beside each other which leads to unpleasing visibility. To make it look better, we simply the axes.
+> As you may notice if we ever want to plot categories on the x axis, given their strings length, they become stacked one beside each other which leads to unpleasing visibility. To make it look better, we simply switch the axes.
 
 ```{r}
 #| warning: false
