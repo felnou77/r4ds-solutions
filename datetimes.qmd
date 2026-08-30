@@ -1,0 +1,77 @@
+---
+title: "Dates and times"
+format: html
+---
+
+## Exercises 17.2.5    {.unnumbered}
+
+### Question 1 
+
+> What happens if you parse a string that contains invalid dates?
+
+```{r, eval=FALSE}
+ymd(c("2010-10-10", "bananas"))
+```
+
+**Solution:**
+
+> It simply fails to parse/transform it into a valid date.
+
+### Question 2 
+
+> What does the tzone argument to today() do? Why is it important?
+
+**Solution:**
+
+> `tzone` is a character vector specifying which time zone you would like the current time in. tzone defaults to your computer's system timezone.
+
+### Question 3 
+
+> For each of the following date-times, show how you’d parse it using a readr column specification and a lubridate function.
+
+```{r}
+d1 <- "January 1, 2010"
+d2 <- "2015-Mar-07"
+d3 <- "06-Jun-2017"
+d4 <- c("August 19 (2015)", "July 1 (2015)")
+d5 <- "12/30/14" # Dec 30, 2014
+t1 <- "1705"
+t2 <- "11:15:10.12 PM"
+```
+
+**Solution:**
+
+```{r, eval=FALSE}
+#d1
+mdy(d1)
+
+#d2
+ymd(d2)
+
+#d3
+dmy(d3)
+
+#d4
+mdy(d4)
+
+#d5
+mdy(d5)
+
+#t2
+# November day 15, 2010, 12 PM (noon)
+csv <- "
+  date
+  11:15:10.12 PM
+"
+read_csv(csv, col_types = cols(date = col_datetime("%m:%d:%y%.%I%.%p")))
+
+#t1
+# Simply 5 PM (17h) & 5 minutes
+csv_2 <- "
+  time
+  1705
+"
+read_csv(csv_2, col_types = cols(time = col_time("%H%M")))
+
+```
+
