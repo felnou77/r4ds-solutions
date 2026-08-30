@@ -167,19 +167,17 @@ babynames |>
 #| layout-ncol: 2
 #| fig-width: 5
 
-# as shown below, names starting or ending with 'A'  with are the most popular
+# as shown below, names respectively starting or ending with ('A', 'a') are the most popular
 
 babynames |> 
   mutate(
-    first = str_sub(name, 1, 1),
-    last = str_sub(name, -1, -1)
+    first = str_sub(name, 1, 1)
   ) |> 
   count(first) |> 
   arrange(desc(n))
 
 babynames |> 
   mutate(
-    first = str_sub(name, 1, 1),
     last = str_sub(name, -1, -1)
   ) |> 
   count(last) |> 
