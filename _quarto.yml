@@ -39,6 +39,7 @@ book:
     - strings.qmd
     - regex.qmd
     - factors.qmd
+    - datetimes.qmd
 
 format:
   html:
