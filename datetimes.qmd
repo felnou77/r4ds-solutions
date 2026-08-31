@@ -3,6 +3,12 @@ title: "Dates and times"
 format: html
 ---
 
+```{css, echo=FALSE}
+figcaption {
+  text-align: center;
+}
+```
+
 ## Exercises 17.2.5    {.unnumbered}
 
 ### Question 1 
@@ -74,4 +80,77 @@ csv_2 <- "
 read_csv(csv_2, col_types = cols(time = col_time("%H%M")))
 
 ```
+
+
+## Exercises 17.3.4     {.unnumbered}
+
+### Question 1 
+
+> How does the distribution of flight times within a day change over the course of the year?
+
+**Solution:**
+
+> As you may notice, flight departure times follow a consistent pattern throughout the day, regardless of the month. This pattern likely arises from a strict, standardized flight schedule over the year. 
+
+> You might notice the `months in the legend` are written in `French`. This is because lubridate automatically adapts its text outputs to match the system language of the computer running the code. I am `Moroccan`, and we traditionally `study and work in French` (our primary foreign language). However, our universities are slowly but firmly shifting their research to English to `democratize` the language in this context and build a stronger international presence.
+
+```{r}
+library(lubridate)
+library(tidyverse)
+library(nycflights13)
+library(ggplot2)
+
+make_datetime_100 <- function(year, month, day, time) {
+  make_datetime(year, month, day, time %/% 100, time %% 100)
+}
+
+flights_dt <- flights |> 
+  filter(!is.na(dep_time)) |> 
+  mutate(
+    dep_time = make_datetime_100(year, month, day, dep_time), 
+    dep_hour = floor_date(dep_time, "day")
+    ) |> 
+  relocate(dep_time, dep_hour)
+
+flights_dt |> 
+  mutate(
+    # Force every flight to happen on Jan 1st so they all align on one 24-hour x-axis
+    time_of_day = update(dep_time, yday = 1),
+    # Extract the month to use for color comparison
+    month = month(dep_time, label = TRUE)
+  ) |> 
+  ggplot(aes(x = time_of_day, color = month)) +
+  geom_freqpoly(binwidth = 3600) + # 3600 seconds = exactly 1 hour bins
+  scale_x_datetime(date_labels = "%H:%M")
+```
+
+### Question 2 
+
+> Compare `dep_time`, `sched_dep_time` and `dep_delay`. Are they consistent? Explain your findings.
+
+**Solution:**
+
+```{r}
+flights_dt <- flights |> 
+  filter(!is.na(dep_time), !is.na(sched_dep_time), !is.na(dep_delay)) |> 
+  mutate(
+    dep_time             = make_datetime_100(year, month, day, dep_time),
+    sched_dep_time       = make_datetime_100(year, month, day, sched_dep_time), 
+    actual_delay         = as.numeric((dep_time - sched_dep_time)/60) # delay in minutes
+  ) |> 
+  select(month, origin, dest, sched_dep_time, dep_time, dep_delay, actual_delay) |> 
+  # we keep unique pairs of values because plotting more than 300 000
+  # observation is resource-heavy
+  count(dep_delay, actual_delay) 
+
+ggplot()+
+  geom_point(data = flights_dt, aes(x = actual_delay, y = dep_delay), size = 2)+
+  geom_abline(colour = 'green', linewidth = 1)+
+  geom_abline(intercept = 1440, slope = 1, colour = 'violet', linewidth = 1)
+```
+> After inspecting the data, it seems that almost all recorded departure delays are exactly the actual departure delays. The plot, confirms this thanks to the identity line in green (remember we are plotting more then 300 000 recorded flight observations so it is hard to distinguish between the number of points that are on the green line and the rest of it: a simple filter with a condition such as `dep_delay != actual_delay` would inform you about this).
+
+> The other points that are not on the `green line` (`dep_delay` is different than `actual_delay`) indicate that there were flights that departed early (very early actually) but recorded as they were delayed. Suprisingly and bizzarly, they follow a line (actually as if we just moved the identity line to the left and kept the slope i.e the points plotted on the left were supposed to be on the green line but displaced). Remember that this data comes with `dep_delay` and we are the ones that calculates with `mutate` the new variable `actual_delay`. `Here is an interesting catch : let's plot a line with the same slope (1) as the identity line and move it back by 24 hours`(`1440 minutes`).
+
+![suspicious recorded data](images/data inspection.png){width=92%}
 
