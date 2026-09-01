@@ -367,9 +367,6 @@ my_vector_2
 **Solution:**
 
 ```{r}
-h_age <- today() - ymd("1979-10-14")
-h_age
-
 get_age <- function(birthday) {
   birthday <- as_date(birthday)
   (birthday %--% today()) %/% years(1)
