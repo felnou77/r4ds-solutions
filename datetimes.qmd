@@ -167,3 +167,152 @@ ggplot()+
 > Look at the data below : there are flights that are supposed to depart 2, January at 23:59:00 but departed the same day at 00:42:00 with a departure delay of 43 minutes. It doesn't make any sense, right ? well let's suppose that such data are typing error or some miss-regulated automatic programs and that flight is actually was supposed to depart the same hour but the day befour : now it makes completly sense. The image shows a potential pattern that may happen at the very end of every month. Such a supposition is confirmed with the line in violet above.
 
 ![suspicious recorded data](images/data%20inspection.png){width="92%"}
+
+### Question 3 
+
+> Compare `air_time` with the duration between the departure and arrival. Explain your findings. (Hint: consider the location of the airport.)
+
+**Solution:**
+
+> it is impossible for a plane to spend more time in the air than the total time between departure and arrival. The discrepancy you are seeing isn't a problem with the planes; it is a problem with the clocks.
+
+> The Time Zone Trap : In the flights dataset, all departures happen in New York, meaning `dep_time` is always recorded in Eastern Time (EST). However, `arr_time` is recorded in the local time of the destination airport. That's way some data points are plotted below the green identity line.
+
+```{r}
+flights_dt <- flights |> 
+  filter(!is.na(dep_time), !is.na(arr_time)) |> 
+  mutate(
+    dep_time        = make_datetime_100(year, month, day, dep_time),
+    arr_time        = make_datetime_100(year, month, day, arr_time), 
+    flight_duration = as.numeric(arr_time - dep_time)
+  ) |> 
+  # The difference may be negative due to flights that depart most likely at night and arrive 
+  # after midnight the day after
+  filter(flight_duration >= 0) |> 
+  select(dep_time, arr_time, flight_duration, air_time) |> 
+  count(flight_duration, air_time)
+
+flights_dt
+
+ggplot()+
+  geom_point(data = flights_dt, aes(x = air_time, y = flight_duration), size = 2)+
+  geom_abline(colour = 'green', linewidth = 1)
+```
+
+#### Question 4 
+
+> How does the average delay time change over the course of a day? Should you use `dep_time` or `sched_dep_time`? Why?
+
+**Solution:**
+
+> If we map our delays against the actual dep_time, the x-axis will be misleading. Imagine a massive storm delays all 8:00 PM flights by four hours. They actually take off at midnight. If you group by `dep_time`, your plot will show that midnight has terrible average delays, and 8:00 PM looks perfectly fine.
+
+```{r}
+#| warning: false
+#| layout-ncol: 2
+#| fig-width: 7
+
+# left plot using sched_dep_tim
+flights |> 
+  mutate(sched_dep_time = make_datetime_100(year, month, day, sched_dep_time), 
+         sched_dep_time = floor_date(sched_dep_time, "15 mins"), 
+         time_chunk     = update(sched_dep_time, yday = 1)) |> 
+  group_by(time_chunk) |> 
+  summarize(avg_delay = mean(arr_delay, na.rm = TRUE)) |> 
+  ggplot(aes(x = time_chunk, y = avg_delay)) +
+  geom_line(color = 'steelblue', linewidth = 1.4) +
+  scale_x_datetime(date_labels = "%H:%M")+
+  labs(title = "Average delay across the day", x = "Time - scheduled depart time", y = "Delay") +
+  theme_minimal()
+
+
+# right plot using dep_time
+flights |> 
+  mutate(dep_time   = make_datetime_100(year, month, day, dep_time), 
+         dep_time   = floor_date(dep_time, "15 mins"), 
+         time_chunk = update(dep_time, yday = 1)) |> 
+  group_by(time_chunk) |> 
+  summarize(avg_delay = mean(arr_delay, na.rm = TRUE)) |> 
+  ggplot(aes(x = time_chunk, y = avg_delay)) +
+  geom_line(color = 'steelblue', linewidth = 1.4) +
+  scale_x_datetime(date_labels = "%H:%M")+
+  labs(title = "Average delay across the day", x = "Time - depart time", y = "Delay")+
+  theme_minimal()
+
+```
+
+
+### Question 5 
+
+> On what day of the week should you leave if you want to minimise the chance of a delay?
+
+**Solution:**
+
+> As you can see, saturday is the best day to book a flight to minimze your chance of getting delayed.
+
+```{r}
+flights |> 
+  mutate(sched_dep_time = make_datetime_100(year, month, day, sched_dep_time),
+         day_of_week    = wday(sched_dep_time, label = TRUE, abbr = FALSE)
+         ) |> 
+  group_by(day_of_week) |> 
+  summarize(avg_delay =  mean(dep_delay, na.rm = TRUE)) |> 
+  ggplot() +
+  geom_col(aes(x = day_of_week, y = avg_delay), fill = "steelblue") +
+  theme_minimal()
+```
+### Question 6 
+
+> What makes the distribution of diamonds$carat and flights$sched_dep_time similar?
+
+**Solution:**
+
+> the overall shapes of the curves are completely different. But both datasets share a human behavioral phenomenon called "heaping," which is the tendency for data to cluster heavily around "nice, round numbers." (human beings prefer clean, memorable schedules and measures)
+
+```{r}
+#| warning: false
+#| layout-ncol: 2
+#| fig-width: 7
+
+ggplot(data = flights)+
+  geom_density(aes(x = sched_dep_time))
+
+ggplot(data = diamonds)+
+  geom_density(aes(x = carat))
+```
+> To go a step further and mathematically prove the "human heaping" concept, you can isolate just the minute portion of the scheduled departures using the modulo operator `%%`. As you can see below, scheduled depar time at regular minutes dominate the top of the list.
+
+```{r}
+flights |> 
+  mutate(minute = sched_dep_time %% 100) |> 
+  count(minute, sort = TRUE) |> 
+  head(10)
+```
+
+### Question 7 
+
+> Confirm our hypothesis that the early departures of flights in minutes 20-30 and 50-60 are caused by scheduled flights that leave early. Hint: create a binary variable that tells you whether or not a flight was delayed.
+
+**Solution:**
+
+```{r}
+flights |> 
+  mutate(
+    # Extract just the minute from the scheduled departure time (0 to 59)
+    sched_minute = sched_dep_time %% 100,
+    # Create the binary variable: TRUE if the flight left early, FALSE otherwise
+    left_early = dep_delay < 0
+  ) |> 
+  # Group by the 60 distinct minutes in an hour
+  group_by(sched_minute) |> 
+  # Calculate the proportion of flights that left early for each minute
+  summarize(prop_early = mean(left_early, na.rm = TRUE), 
+            n = n()) |> 
+  # Plot the results
+  ggplot(aes(x = sched_minute, y = prop_early)) +
+  geom_line() +
+  geom_point(aes(size = n)) +
+  scale_x_continuous(breaks = seq(0, 60, by = 10))
+```
+
+
