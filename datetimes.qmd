@@ -348,7 +348,7 @@ my_vector_1
 
 
 ```{r}
-datetime_2 <- mdy(paste0("01-01", as.character(year(today()))))
+datetime_2 <- mdy(paste0("01-01-", as.character(year(today()))))
 my_vector_2 <- as.Date(character())
 
 for (mois in 1:12) {
