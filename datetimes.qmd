@@ -314,5 +314,75 @@ flights |>
   geom_point(aes(size = n)) +
   scale_x_continuous(breaks = seq(0, 60, by = 10))
 ```
+## Exercises 17.4.4  {.unnumbered}
+
+### Question 1
+
+> Explain `days(!overnight)` and `days(overnight)` to someone who has just started learning R. What is the key fact you need to know?
+
+**Solution:**
+
+> Well the new variable overnight is a logical vector that contains either `TRUE` (arr_time < dep_time: a flight departed in the night and arrived the day after; after midnight) or `FALSE`. so days(overnight) either add 1 day (days(TRUE))  to the arrival time or leave the arrival time intact by adding 0 (days(FALSE)) to it.
+
+
+### Question 2 
+
+> Create a vector of dates giving the first day of every month in 2015. Create a vector of dates giving the first day of every month in the current year.
+
+**Solution:**
+
+> You find below,n respectively the code that generate every day of month of the year 2015 and current one
+
+```{r}
+datetime_1  <- ymd("2015-01-01")
+my_vector_1 <- as.Date(character())
+
+for (mois in 1:12) {
+  month(datetime_1) <- mois
+  my_vector_1 <- c(my_vector_1, datetime_1)
+}
+
+my_vector_1
+
+```
+
+
+```{r}
+datetime_2 <- mdy(paste0("01-01", as.character(year(today()))))
+my_vector_2 <- as.Date(character())
+
+for (mois in 1:12) {
+  month(datetime_2) <- mois
+  my_vector_2 <- c(my_vector_2, datetime_2)
+}
+
+my_vector_2
+
+```
+
+### Question 3 
+
+> Write a function that given your birthday (as a date), returns how old you are in years.
+
+**Solution:**
+
+```{r}
+h_age <- today() - ymd("1979-10-14")
+h_age
+
+get_age <- function(birthday) {
+  birthday <- as_date(birthday)
+  (birthday %--% today()) %/% years(1)
+}
+
+# Age of Nawfal
+get_age("1998-01-10")
+```
+
+
+
+
+
+
 
 
