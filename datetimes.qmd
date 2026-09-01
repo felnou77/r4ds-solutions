@@ -9,9 +9,9 @@ figcaption {
 }
 ```
 
-## Exercises 17.2.5    {.unnumbered}
+## Exercises 17.2.5 {.unnumbered}
 
-### Question 1 
+### Question 1
 
 > What happens if you parse a string that contains invalid dates?
 
@@ -23,7 +23,7 @@ ymd(c("2010-10-10", "bananas"))
 
 > It simply fails to parse/transform it into a valid date (here it recognize the first element and raise an error at the second)
 
-### Question 2 
+### Question 2
 
 > What does the tzone argument to today() do? Why is it important?
 
@@ -31,7 +31,7 @@ ymd(c("2010-10-10", "bananas"))
 
 > `tzone` is a character vector specifying which time zone you would like the current time in. tzone defaults to your computer's system timezone.
 
-### Question 3 
+### Question 3
 
 > For each of the following date-times, show how you’d parse it using a readr column specification and a lubridate function.
 
@@ -81,16 +81,15 @@ read_csv(csv_2, col_types = cols(time = col_time("%H%M")))
 
 ```
 
+## Exercises 17.3.4 {.unnumbered}
 
-## Exercises 17.3.4     {.unnumbered}
-
-### Question 1 
+### Question 1
 
 > How does the distribution of flight times within a day change over the course of the year?
 
 **Solution:**
 
-> As you may notice, flight departure times follow a consistent pattern throughout the day, regardless of the month. This pattern likely arises from a strict, standardized flight schedule over the year. 
+> As you may notice, flight departure times follow a consistent pattern throughout the day, regardless of the month. This pattern likely arises from a strict, standardized flight schedule over the year.
 
 > You might notice the `months in the legend` are written in `French`. This is because lubridate automatically adapts its text outputs to match the system language of the computer running the code. I am `Moroccan`, and we traditionally `study and work in French` (our primary foreign language). However, our universities are slowly but firmly shifting their research to English to `democratize` the language in this context and build a stronger international presence.
 
@@ -124,7 +123,7 @@ flights_dt |>
   scale_x_datetime(date_labels = "%H:%M")
 ```
 
-### Question 2 
+### Question 2
 
 > Compare `dep_time`, `sched_dep_time` and `dep_delay`. Are they consistent? Explain your findings.
 
@@ -146,11 +145,25 @@ flights_dt <- flights |>
 ggplot()+
   geom_point(data = flights_dt, aes(x = actual_delay, y = dep_delay), size = 2)+
   geom_abline(colour = 'green', linewidth = 1)+
-  geom_abline(intercept = 1440, slope = 1, colour = 'violet', linewidth = 1)
+  geom_abline(intercept = 1440, slope = 1, colour = 'violet', linewidth = 1)+
+  annotate(
+    geom = "segment",
+    x = -70, y = 0, xend = -1370, yend = 0, color = "red",
+    arrow = arrow(type = "closed",ends = "both", angle = 10)
+  ) +
+  annotate(
+    geom = "label", x = -850, y = 100,
+    label = "24 hours",
+    hjust = "left", color = "red"
+  ) +
+  theme_minimal()
+  
 ```
+
 > After inspecting the data, it seems that almost all recorded departure delays are exactly the actual departure delays. The plot, confirms this thanks to the identity line in green (remember we are plotting more then 300 000 recorded flight observations so it is hard to distinguish between the number of points that are on the green line and the rest of it: a simple filter with a condition such as `dep_delay != actual_delay` would inform you about this).
 
-> The other points that are not on the `green line` (`dep_delay` is different than `actual_delay`) indicate that there were flights that departed early (very early actually) but recorded as they were delayed. Suprisingly and bizzarly, they follow a line (actually as if we just moved the identity line to the left and kept the slope i.e the points plotted on the left were supposed to be on the green line but displaced). Remember that this data comes with `dep_delay` and we are the ones that calculates with `mutate` the new variable `actual_delay`. `Here is an interesting catch : let's plot a line with the same slope (1) as the identity line and move it back by 24 hours`(`1440 minutes`).
+> The other points that are not on the `green line` (`dep_delay` is different than `actual_delay`) indicate that there were flights that departed early (very early actually) but recorded as they were delayed. Suprisingly and bizzarly, they follow a line (actually as if we just moved the identity line to the left and kept the slope i.e the points plotted on the left were supposed to be on the green line but displaced). Remember that this data comes with `dep_delay` and we are the ones that calculates with `mutate` the new variable `actual_delay`. `Here is an interesting catch : let's plot a line with the same slope (1) as the identity line and move it back by 24 hours`(`1440 minutes`). we will come back to this special line as a conclusion about those unresonable data.
 
-![suspicious recorded data](images/data inspection.png){width=92%}
+> Look at the data below : there are flights that are supposed to depart 2, January at 23:59:00 but departed the same day at 00:42:00 with a departure delay of 43 minutes. It doesn't make any sense, right ? well let's suppose that such data are typing error or some miss-regulated automatic programs and that flight is actually was supposed to depart the same hour but the day befour : now it makes completly sense. The image shows a potential pattern that may happen at the very end of every month. Such a supposition is confirmed with the line in violet above.
 
+![suspicious recorded data](images/data%20inspection.png){width="92%"}
