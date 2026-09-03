@@ -41,6 +41,7 @@ book:
     - factors.qmd
     - datetimes.qmd
     - missing-values.qmd
+    - joins.qmd
 
 format:
   html:
