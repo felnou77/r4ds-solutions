@@ -263,7 +263,7 @@ flights |>
 ```
 ### Question 6 
 
-> What makes the distribution of diamonds$carat and flights$sched_dep_time similar?
+> What makes the distribution of `diamonds$carat` and `flights$sched_dep_time` similar?
 
 **Solution:**
 
