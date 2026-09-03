@@ -40,6 +40,7 @@ book:
     - regex.qmd
     - factors.qmd
     - datetimes.qmd
+    - missing-values.qmd
 
 format:
   html:
