@@ -1,0 +1,26 @@
+---
+title: "Missing values"
+format: html
+---
+
+## Exercises 18.3.4  {.unnumbered}
+
+### Question 1
+
+> Can you find any relationship between the carrier and the rows that appear to be missing from planes?
+
+**Solution:**
+
+> The code below reveals that the missing planes almost entirely belong to `American Airlines` (AA) and` Envoy Air` (MQ).
+
+```{r}
+library(tidyverse)
+library(nycflights13)
+
+flights |> 
+  distinct(tailnum, carrier) |> 
+  anti_join(planes) |> 
+  count(carrier, sort = TRUE)
+```
+
+
