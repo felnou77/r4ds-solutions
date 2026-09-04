@@ -1,0 +1,149 @@
+---
+title: "Joins"
+format: html
+---
+
+## Exercises 19.2.4   {.unnumbered}
+
+### Question 1 
+
+> We forgot to draw the relationship between `weather` and `airports` in Figure 19.1. What is the relationship and how should it appear in the diagram?
+
+**Solution:**
+
+> The `weather` dataset records hourly meterological data for LGA, JFK and EWR (Three airports in new york from which flights departed in 2013). Tha variable that encoded the id of the airports are given by `LGA`, `JFK` and `EWR` in the variable `origin`. 
+
+> The dataset `airports` records useful informations about not only three airports but about more than a thousand airports including `LGA`, `JFK` and `EWR`. This dataset identifies airport via a variable called `faa`. 
+
+### Question 2 
+
+> `weather` only contains information for the three origin airports in NYC. If it contained weather records for all airports in the USA, what additional connection would it make to `flights`?
+
+**Solution:**
+
+> An additional connection would be at the level of `dest` variable in the `flights` dataset.
+
+### Question 3 
+
+> The `year`, `month`, `day`, `hour`, and `origin` variables almost form a compound key for weather, but there’s one hour that has duplicate observations. Can you figure out what’s special about that hour?
+
+**Solution:**
+
+>In the United States, clocks 'fall back' one hour on the first Sunday of November, which in 2013 was November 3rd. It is that 1:00 AM literally happened twice. The clock reaches 1:59 AM, and instead of turning to 2:00 AM, it rolls backward to 1:00 AM again.
+
+```{r}
+library(nycflights13)
+library(tidyverse)
+
+# to find duplicates 
+weather |> 
+  count(year, month, day, hour, origin) |> 
+  filter(n > 1)
+```
+### Question 4 
+
+> We know that some days of the year are special and fewer people than usual fly on them (e.g., Christmas eve and Christmas day). How might you represent that data as a data frame? What would be the primary key? How would it connect to the existing data frames?
+
+**Solution:**
+
+> The primary key would be the compound key of `year`, `month`, and `day`.
+
+```{r}
+tibble(year = 2013, month = 12, day = c(24, 25), holiday = c("Christmas Eve", "Christmas Day"))
+```
+
+### Question 5 
+
+> Draw a diagram illustrating the connections between the `Batting`, `People`, and `Salaries` data frames in the Lahman package. Draw another diagram that shows the relationship between `People`, `Managers`, `AwardsManagers`. How would you characterize the relationship between the `Batting`, `Pitching`, and `Fielding` data frames?
+
+**Solution:**
+
+```{mermaid}
+erDiagram
+    People ||--o{ Batting : playerID
+    People ||--o{ Salaries : playerID
+
+    People {
+        string playerID PK
+        string nameFirst
+        string nameLast
+    }
+    Batting {
+        string playerID FK
+        int yearID
+        int stint
+    }
+    Salaries {
+        string playerID FK
+        int yearID
+        string teamID
+    }
+```
+
+
+```{mermaid}
+erDiagram
+    People ||--o{ Managers : "playerID"
+    People ||--o{ AwardsManagers : "playerID"
+
+    People {
+        string playerID PK
+    }
+    Managers {
+        string playerID FK
+        int yearID
+        int inseason
+    }
+    AwardsManagers {
+        string playerID FK
+        string awardID
+        int yearID
+    }
+```
+
+## Exercises 19.3.4   {.unnumbered}
+
+### Question 1 
+
+> Find the 48 hours (over the course of the whole year) that have the worst delays. Cross-reference it with the weather data. Can you see any patterns?
+
+**Solution:**
+
+> As you you can notice, the 48 hours with the worst delay happened to be in the end of june and starting july with an average mean delay of 50 minutes. The variable mean_delay take each 48 hours a new value so we expect to have duplicate of values for example across hours in the same day. 
+
+```{r}
+library(nycflights13)
+library(tidyverse)
+library(ggplot2)
+
+flights_data = flights |> 
+                      mutate(
+                      # Extract just the date (removes the hours/minutes)
+                      flight_date = as_date(time_hour),
+                      # Group the dates into sequential 2-day intervals
+                      two_day_chunk = cut(flight_date, breaks = "2 days")
+                      ) |> 
+                      group_by(two_day_chunk) |> 
+                      summarize(mean_delay = mean(dep_delay, na.rm = TRUE)) 
+
+make_date_weather <- function(year, month, day) {
+  lubridate::make_date(year, month, day)
+}
+
+weather_data = weather |> 
+                      mutate(
+                        date = make_date_weather(year, month, day),
+                        two_day_chunk = cut(date, breaks = "2 days")
+                      ) |> 
+                      relocate(date, two_day_chunk, .after = origin)
+
+# left-join by the previous summary data to extend into a new column : mean_delay in each 48 hours chunk
+weather_data |> 
+  left_join(flights_data, join_by(two_day_chunk)) |> 
+  relocate(time_hour, mean_delay,precip, .after = two_day_chunk) |> 
+  arrange(desc(mean_delay))
+```
+
+
+
+
