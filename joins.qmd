@@ -109,7 +109,7 @@ erDiagram
 
 **Solution:**
 
-> As you you can notice, the 48 hours with the worst delay happened to be in the end of june and starting july with an average mean delay of 50 minutes. The variable mean_delay take each 48 hours a new value so we expect to have duplicate of values for example across hours in the same day. 
+> As you you can notice, the 48 hours with the worst delay happened to be in the end of june and starting july with an average mean delay of 50 minutes. The variable `mean_delay` take each 48 hours a new value so we expect to have duplicate of values for example across hours in the same day. 
 
 ```{r}
 library(nycflights13)
@@ -144,6 +144,51 @@ weather_data |>
   arrange(desc(mean_delay))
 ```
 
+
+### Question 2 
+
+> Imagine you’ve found the top 10 most popular destinations using this code:
+> How can you find all flights to those destinations?
+
+```{r}
+flights2 <- flights |> 
+  select(year, time_hour, origin, dest, tailnum, carrier)
+
+top_dest <- flights2 |>
+  count(dest, sort = TRUE) |>
+  head(10)
+```
+
+**Solution:**
+
+> We simply use a filtering join, `semi_join()` to keep rows in `flights2` where the destination is among the top one in `top_dest`.
+
+```{r, eval=FALSE}
+flights2 |> 
+  semi_join(top_dest, join_by(dest))
+```
+
+### Question 3 
+
+> Does every departing flight have corresponding weather data for that hour?
+
+**Solution:**
+
+> No ! There are recorded flights that departed at some hours on a specific day in a specific month that do not have corresponding weather data. Please make a difference : the hours you find below do not have weather recorded data at any of the three airports. Therefore, It may exist recorded weather data at a certain hour for an airport and not for the rest. 
+
+```{r}
+flights2 |>
+  # you can add origin to form a compound key to find hours where
+  # weather data is not recorded in at least one airport
+  anti_join(weather, join_by(time_hour)) |>
+  distinct(time_hour)
+```
+
+### Question 4 
+
+> What do the tail numbers that don’t have a matching record in `planes` have in common? (Hint: one variable explains ~90% of the problems.)
+
+**Solution:**
 
 
 
