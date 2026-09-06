@@ -42,6 +42,7 @@ book:
     - datetimes.qmd
     - missing-values.qmd
     - joins.qmd
+    - spreadsheets.qmd
 
 format:
   html:
