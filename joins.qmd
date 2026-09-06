@@ -190,5 +190,158 @@ flights2 |>
 
 **Solution:**
 
+> As you can notice, most of the planes that do not have a matching record in `planes` come mostly from two airlines : AA (American Airlines) and MQ (Envoy Air).
+
+> When reading the description of `planes` dataset I came across this text : `American Airways (AA) and Envoy Air (MQ) report fleet numbers rather than tail numbers so can't be matched.` Such an information explains that these two airlines didn't provide their tailnum code, so they are simply not included in the `planes` dataset.
+
+```{r}
+# airplanes that don't have metadata
+tailnum = flights2 |>
+                anti_join(planes, join_by(tailnum)) |> 
+                distinct(tailnum) 
 
 
+flights2 |> 
+  semi_join(tailnum, join_by(tailnum)) |> # Flights that don't have plane metadata
+  group_by(carrier) |> # Inspecting from which airline come those planes
+  summarize(nbr_flights = n(), 
+            nbr_plane   = length(unique(tailnum))) |> 
+  arrange(desc(nbr_plane))
+```
+
+### Question 5 
+
+> Add a column to `planes` that lists every `carrier` that has flown that plane. You might expect that there’s an implicit relationship between plane and airline, because each plane is flown by a single airline. Confirm or reject this hypothesis using the tools you’ve learned in previous chapters.
+
+**Solution:**
+
+> If you look closely at the number of rows of the new dataset and compare it the the number of rows in the `planes` dataset, you notice that there are more rows generated. If each tailnum (plane) flew for a single airline the two dataset would have exactly the same number of rows. But this is not the case here: there are duplicates and this is rejects the hypothesis mentioned above. 
+
+```{r}
+planes |> 
+  left_join(flights2 |> distinct(tailnum, carrier), join_by(tailnum)) |> 
+  relocate(carrier, .after = tailnum)
+```
+
+
+### Question 6 
+
+> Add the latitude and the longitude of the origin and destination airport to flights. Is it easier to rename the columns before or after the join?
+
+**Solution:**
+
+> For this task we need two left_joins to be able to show coordinates of both origin and destination airports. I did rename the new columns gradually when performing the joins.
+
+```{r}
+coord = airports |> select(faa, lat, lon)
+
+flights |> 
+  left_join(coord, join_by(origin == faa)) |> 
+  relocate(lat_origin = lat, lon_origin = lon, .after = origin) |> 
+  left_join(coord, join_by(dest == faa)) |> 
+  relocate(lat_dest = lat, lon_dest = lon, .after = dest )
+```
+
+
+### Question 7 
+
+> Compute the average delay by destination, then join on the airports data frame so you can show the spatial distribution of delays. Here’s an easy way to draw a map of the United States:
+
+```{r, eval=FALSE}
+airports |>
+  semi_join(flights, join_by(faa == dest)) |>
+  ggplot(aes(x = lon, y = lat)) +
+    borders("state") +
+    geom_point() +
+    coord_quickmap()
+```
+
+> You might want to use the `size` or `color` of the points to display the average delay for each airport.
+
+**Solution:**
+
+```{r}
+#| warning: false
+#| fig-width: 12
+
+flights |> 
+  group_by(dest) |> 
+  summarize(mean_delay = mean(dep_delay, na.rm = TRUE)) |> 
+  left_join(coord, join_by(dest == faa)) |> 
+  relocate(lat_dest = lat, lon_dest = lon, .after = dest) |> 
+  ggplot(aes(x = lon_dest, y = lat_dest, color = mean_delay)) +
+    borders("state") +
+    geom_point(size = 2.7) +
+    coord_quickmap()
+```
+
+### Question 8 
+
+> What happened on June 13 2013? Draw a map of the delays, and then use Google to cross-reference with the weather.
+
+**Solution:**
+
+> you can see a massive cluster of dark blue (severe delay) dots heavily concentrated in the Southeastern United States. If you search for historical weather on that specific date, you will find the June 12–13, 2013 `Derecho`. A derecho is a massive line of severe thunderstorms capable of producing hurricane-force winds.
+
+```{r}
+#| warning: false
+#| fig-width: 12
+
+flights |> 
+  filter(year == 2013, month == 6, day == 13) |> 
+  group_by(dest) |> 
+  summarize(mean_delay = mean(dep_delay, na.rm = TRUE)) |> 
+  inner_join(airports, join_by(dest == faa)) |> 
+  ggplot(aes(x = lon, y = lat, color = mean_delay)) +
+  borders("state") +
+  geom_point(size = 4) +
+  coord_quickmap() +
+  scale_color_gradient(low = "lightblue", high = "darkblue")
+
+```
+
+
+## Exercises 19.5.5   {.unnumbered}
+
+### Question 1 
+
+> Can you explain what’s happening with the keys in this equi join? Why are they different?
+
+```{r, eval=FALSE}
+x |> full_join(y, join_by(key == key))
+#> # A tibble: 4 × 3
+#>     key val_x val_y
+#>   <dbl> <chr> <chr>
+#> 1     1 x1    y1   
+#> 2     2 x2    y2   
+#> 3     3 x3    <NA> 
+#> 4     4 <NA>  y3
+
+x |> full_join(y, join_by(key == key), keep = TRUE)
+#> # A tibble: 4 × 4
+#>   key.x val_x key.y val_y
+#>   <dbl> <chr> <dbl> <chr>
+#> 1     1 x1        1 y1   
+#> 2     2 x2        2 y2   
+#> 3     3 x3       NA <NA> 
+#> 4    NA <NA>      4 y3
+
+```
+
+
+**Solution:**
+
+> The First Example (Default): The join merges the matching keys into a single, unified key column. If a row only exists in x, it uses the key from x. If it only exists in y, it uses the key from y. This keeps your dataset clean and prevents empty key values.
+
+> The Second Example (keep = TRUE): The join keeps both original key columns separate (key.x and key.y). Because it doesn't merge them, rows that only exist in one table will show NA for the key of the missing table.
+
+
+### Question 2 
+
+> When finding if any party period overlapped with another party period we used `q < q` in the `join_by()`? Why? What happens if you remove this inequality?
+
+**Solution:**
+
+> Why it is used: When joining a table to itself (a self-join), q < q (where q is the unique ID or sequence number) acts as a filter. It ensures you only compare different periods and prevents the code from finding duplicate pairs in reverse order (e.g., it will find "Period 1 overlaps with Period 2", but skips "Period 2 overlaps with Period 1").
+
+> What happens if you remove it: Every single party period will successfully match with itself (since Period 1 obviously overlaps with Period 1), clogging your results with false positives. You will also get duplicate swapped rows for every genuine overlap. 
