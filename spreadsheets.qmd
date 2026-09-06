@@ -1,0 +1,31 @@
+---
+title: "Spreadsheets"
+---
+
+```{css, echo=FALSE}
+figcaption {
+  text-align: center;
+}
+```
+
+
+## Chapter 20: Spreadsheets (Note on Exercises)
+
+```{r}
+# The practical exercises in this chapter require active manipulation of Microsoft Excel workbooks. 
+
+# Because I do not currently maintain an active Excel license, I am bypassing the coding exercises
+# for this specific section. 
+
+```
+
+
+> I have included the official chapter summary below, alongside the Tidyverse Data Import Cheat Sheet. This covers the essential syntax and workflows for reading and writing spreadsheet data in R.
+
+> Microsoft Excel and Google Sheets are two of the most popular spreadsheet systems. Being able to interact with data stored in Excel and Google Sheets files directly from R is a superpower! In this chapter you learned how to read data into R from spreadsheets from Excel with `read_excel()` from the readxl package and from Google Sheets with `read_sheet()` from the googlesheets4 package. These functions work very similarly to each other and have similar arguments for specifying column names, NA strings, rows to skip on top of the file you’re reading in, etc. Additionally, both functions make it possible to read a single sheet from a spreadsheet as well.
+
+
+
+![Tidyverse Data Import Cheat Sheet](images/cheatsheet_1.png){width=90%}
+
+![Tidyverse Data Import Cheat Sheet](images/cheatsheet_2.png){width=90%}
