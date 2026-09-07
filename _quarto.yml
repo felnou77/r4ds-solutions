@@ -43,6 +43,7 @@ book:
     - missing-values.qmd
     - joins.qmd
     - spreadsheets.qmd
+    - databases.qmd
 
 format:
   html:
