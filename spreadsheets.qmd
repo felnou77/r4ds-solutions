@@ -9,7 +9,7 @@ figcaption {
 ```
 
 
-## Chapter 20: Spreadsheets (Note on Exercises)
+## Spreadsheets (Note on Exercises)
 
 ```{r}
 # The practical exercises in this chapter require active manipulation of Microsoft Excel workbooks. 
