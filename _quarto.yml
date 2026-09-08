@@ -44,6 +44,7 @@ book:
     - joins.qmd
     - spreadsheets.qmd
     - databases.qmd
+    - arrow.qmd
 
 format:
   html:
