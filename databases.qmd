@@ -1,0 +1,73 @@
+---
+title: "Databases"
+format: html
+---
+
+## Exercises 21.5.10  {.unnumbered}
+
+### Question 1 
+
+> What is distinct() translated to? How about head()?
+
+**Solution:**
+
+> As you can notice below, `distinct()` simply becomes `DISTINCT` and since `head()` shows the first 6 rows of our dataset, it gets translated to `LIMIT 6`
+
+```{r}
+library(DBI)
+library(dbplyr)
+library(tidyverse)
+
+con <- DBI::dbConnect(duckdb::duckdb())
+dbplyr::copy_nycflights13(con)
+
+flights <- tbl(con, "flights")
+planes <- tbl(con, "planes")
+```
+
+```{r}
+flights |> 
+  distinct(dest) |> 
+  show_query()
+```
+```{r}
+planes |> 
+  head() |> 
+  show_query()
+```
+### Question 2 
+
+> Explain what each of the following SQL queries do and try recreate them using dbplyr.
+
+```{r, eval=FALSE}
+# 1
+SELECT * 
+FROM flights
+WHERE dep_delay < arr_delay
+
+# 2
+SELECT *, distance / (air_time / 60) AS speed
+FROM flights
+```
+
+**Solution:**
+
+> It is pretty straghtforward to explain what each of these SQL queries does. The first one keeps rows based on a condition and the second one create a new column named speed based on the right components that forms its expression.
+
+
+```{r}
+# 1
+flights |> 
+  filter(dep_delay < arr_delay) |> 
+  show_query()
+```
+
+```{r}
+# 2 
+flights |> 
+  mutate( speed = distance / (air_time / 60)) |> 
+  show_query()
+```
+
+
+
