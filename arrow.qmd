@@ -1,0 +1,83 @@
+---
+title: "Arrow"
+format: html
+---
+
+```{r}
+library(tidyverse)
+library(arrow)
+library(dbplyr, warn.conflicts = FALSE)
+library(duckdb)
+```
+
+
+```{r}
+seattle_csv <- open_dataset(
+  sources = "data/seattle-library-checkouts.csv", 
+  col_types = schema(ISBN = string()),
+  format = "csv"
+)
+```
+
+```{r}
+pq_path <- "data/seattle-library-checkouts"
+
+seattle_pq <- open_dataset(pq_path)
+```
+
+
+## Exercises 22.5.3   {.unnumbered}
+
+### Question 1 
+
+> Figure out the most popular book each year.
+
+**Solution:**
+
+```{r}
+seattle_pq |> 
+  filter(MaterialType == "BOOK") |> 
+  group_by(CheckoutYear, Title) |> 
+  summarize(TotalCheckouts = sum(Checkouts)) |> 
+  collect() |>  # Convert from Arrow to a standard R tibble here
+  group_by(CheckoutYear) |> # Ensure it remains grouped by year in local memory
+  slice_max(order_by = TotalCheckouts, n = 1)
+```
+
+### Question 2 
+
+> Which author has the most books in the Seattle library system ?
+
+**Solution:**
+
+> James Patterson is the author with most books in the Seattle library system.
+
+```{r}
+seattle_pq |> 
+  filter(MaterialType == "BOOK") |> 
+  group_by(Creator) |> 
+  summarize(NbrofBooks = n_distinct(Title)) |> 
+  collect() |>  # Call collect here, after the data is shrunk to one row per author
+  slice_max(order_by = NbrofBooks, n = 5)
+```
+
+### Question 3 
+
+> How has checkouts of books vs ebooks changed over the last 10 years?
+
+**Solution:**
+
+```{r}
+library(ggplot2)
+library(lubridate)
+
+seattle_pq |> 
+  filter(CheckoutYear >= 2012, MaterialType %in% c("BOOK", "EBOOK")) |> 
+  group_by(CheckoutYear, MaterialType) |> 
+  summarize(TotalCheckout = sum(Checkouts)) |> 
+  collect() |> 
+  ggplot() +
+  geom_line(aes(x = make_date(CheckoutYear), y = TotalCheckout, color = MaterialType))
+```
+
+
