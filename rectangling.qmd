@@ -1,0 +1,258 @@
+---
+title: "Hierarchical data"
+format: html
+---
+
+```{css, echo=FALSE}
+figcaption {
+  text-align: center;
+}
+```
+
+## Exercises 23.3.5 {.unnumbered}
+
+### Question 1
+
+> What happens when you use `unnest_wider()` with unnamed list-columns like df2? What argument is now necessary? What happens to missing values?
+
+```{r}
+library(tidyverse)
+
+df2 <- tribble(
+  ~x, ~y,
+  1, list(11, 12, 13),
+  2, list(21),
+  3, list(31, 32),
+)
+```
+
+**Solution:**
+
+> When dealing with unamed list-columns like `df2`, `unnest_wider()` can't unnest elements with missing names. To make it work and expand our tribble to more column we should supply `names_sep` to generate automatic names. Finally, such a behavior regarding missing values was expected since the list-columns are not of the same length. The code below shows how missing values was filled automatically and reasonably across the new columns.
+
+```{r}
+df2 |> unnest_wider(y, names_sep = "_")
+```
+### Question 2 
+
+> What happens when you use `unnest_longer()` with named list-columns like df1? What additional information do you get in the output? How can you suppress that extra detail?
+
+```{r}
+df1 <- tribble(
+  ~x, ~y,
+  1, list(a = 11, b = 12),
+  2, list(a = 21, b = 22),
+  3, list(a = 31, b = 32),
+)
+```
+
+**Solution:**
+
+> When you apply `unnest_longer()` to a named list-column, it expands the lists by placing each element into its own row and duplicating the adjacent x values to maintain the relationship. Actually, I do not know why Hadley judge the new generated column `y_id` by additional information, like it bothers the output and should not be there. For me `unnest_longer()` is well crafted (Most likely conceived and crafted by Hadley himself) in this case and showcases any information related to our tibble. Anyway, to suppress it, we add the `indices_include = FALSE` argument inside the function to prevent R from creating the ID column entirely.
+
+```{r}
+#| warning: false
+#| layout-ncol: 2
+#| fig-width: 5
+
+df1 |> unnest_longer(y)
+df1 |> unnest_longer(y, , indices_include = FALSE)
+```
+
+### Question 3 
+
+> From time-to-time you encounter data frames with multiple list-columns with aligned values. For example, in the following data frame, the values of y and z are aligned (i.e. y and z will always have the same length within a row, and the first value of y corresponds to the first value of z). What happens if you apply two unnest_longer() calls to this data frame? How can you preserve the relationship between x and y? (Hint: carefully read the docs).
+
+```{r}
+df4 <- tribble(
+  ~x, ~y, ~z,
+  "a", list("y-a-1", "y-a-2"), list("z-a-1", "z-a-2"),
+  "b", list("y-b-1", "y-b-2", "y-b-3"), list("z-b-1", "z-b-2", "z-b-3")
+)
+```
+
+**Solution:**
+
+> From the documentation it is clearly stated that if the columns are aligned, we can unnest simultaneously like in `**` because otherwise (in `*`) sequential unnesting would generate the cartesian product of the rows. 
+
+```{r}
+#| warning: false
+#| layout-ncol: 2
+#| fig-width: 5
+
+# *
+df4 |> 
+  unnest_longer(y) |> unnest_longer(z)
+
+# **
+df4 |> unnest_longer(c(y,z))
+```
+
+
+## Exercises 23.4.4  {.unnumbered}
+
+### Question 1 
+
+> Roughly estimate when `gh_repos` was created. Why can you only roughly estimate the date?
+
+**Solution:**
+
+> After performing two different and sequential unnests, we get finally a sense of what our data is about. Since we want to figure out roughly when this data was created, let's look for any column that simply represents time. After inspecting the 68 columns, we came across a column `created_at` which is most likely the date_time when repositories were created. The code below, shows the latest repositery that was created and it happened to be in October 2016. Therefore, we can say that `gh_repos` was pulled from the Github API after this date. 
+
+> Actually among the 68 columns, there is `updated_at`. Since you are programmer, you already know that active repositories are updated frequently like the repo I created to document my progression in solving all the exercises of this book. So, by doing the same thing to `updated_at` we may be much closer to the actual date where those data were pulled by pushing the year into maybe late 2017 or more.
+
+```{r}
+library(tidyverse)
+library(repurrrsive)
+library(jsonlite)
+
+repos <- tibble(json = gh_repos)
+
+repos |> 
+  unnest_longer(json) |> 
+  unnest_wider(json) |> 
+  select(created_at) |> 
+  mutate(year = lubridate::ym(str_sub(created_at, 1, 7))) |> 
+  arrange(desc(year))
+```
+
+### Question 2 
+
+> The `owner` column of `gh_repos` contains a lot of duplicated information because each owner can have many repos. Can you construct an `owners` data frame that contains one row for each owner? (Hint: does `distinct()` work with list-cols?)
+
+**Solution:**
+
+```{r}
+owners <- repos |>
+  unnest_longer(json) |> 
+  unnest_wider(json) |> 
+  select(owner) |> 
+  distinct() |>
+  unnest_wider(owner)
+
+owners
+```
+
+### Question 3 
+
+> Follow the steps used for titles to create similar tables for the aliases, allegiances, books, and TV series for the Game of Thrones characters.
+
+**Solution:**
+
+```{r, eval=FALSE}
+chars <- tibble(json = got_chars)
+
+# Table of aliases
+chars |> 
+  unnest_wider(json) |> 
+  select(id, aliases) |> 
+  unnest_longer(aliases)
+
+# Table of allegiances
+chars |> 
+  unnest_wider(json) |> 
+  select(id, allegiances) |> 
+  unnest_longer(allegiances)
+
+#Table of books
+chars |> 
+  unnest_wider(json) |> 
+  select(id, books) |> 
+  unnest_longer(books)
+
+# Tbale of tv series
+chars |> 
+  unnest_wider(json) |> 
+  select(id, tvSeries) |> 
+  unnest_longer(tvSeries)
+```
+
+### Question 4 
+
+> Explain the following code line-by-line. Why is it interesting? Why does it work for got_chars but might not work in general?
+
+```{r, eval=FALSE}
+tibble(json = got_chars) |> 
+  unnest_wider(json) |> 
+  select(id, where(is.list)) |> # *
+  pivot_longer(
+    where(is.list), 
+    names_to = "name", 
+    values_to = "value"
+  ) |> # **
+  unnest_longer(value) # ***  
+```
+
+**Solution:**
+
+> You can vizualize step by step what each chunk of code does to the original tibble in the images below.
+
+
+
+![Until *](images/rectangling_1.png){width=70%}
+
+
+![Until **](images/rectangling_2.png){width=40%}
+
+
+
+![Until***](images/rectangling_3.png){width=68%}
+
+
+### Question 5 
+
+> In gmaps_cities, what does address_components contain? Why does the length vary between rows? Unnest it appropriately to figure it out. (Hint: types always appears to contain two elements. Does unnest_wider() make it easier to work with than unnest_longer()?) .
+
+**Solution:**
+
+> The address_components column contains the individual geographic building blocks of a location as returned by the Google Maps API, such as the neighborhood, city, state, country, and postal code.
+
+> The length varies between rows because different geographic locations have different administrative hierarchies. A major city might have a neighborhood, a local municipality, a county, a state, and a country, resulting in five or six components. A smaller, less complex region might only return three components.
+
+```{r, eval=FALSE}
+gmaps_df |> 
+  select(address_components) |> 
+  unnest_longer(address_components) |> 
+  unnest_wider(address_components) |> 
+  unnest_wider(types, names_sep = "_")
+```
+
+
+## Exercises 23.5.4   {.unnumbered}
+
+> Rectangle the `df_col` and `df_row` below. They represent the two ways of encoding a data frame in JSON.`
+
+```{r, eval=FALSE}
+json_col <- parse_json('
+  {
+    "x": ["a", "x", "z"],
+    "y": [10, null, 3]
+  }
+')
+json_row <- parse_json('
+  [
+    {"x": "a", "y": 10},
+    {"x": "x", "y": null},
+    {"x": "z", "y": 3}
+  ]
+')
+
+df_col <- tibble(json = list(json_col)) 
+df_row <- tibble(json = json_row)
+```
+
+
+**Solution:**
+
+```{r, eval=FALSE}
+# Rectangling df_col (Column-oriented JSON)
+df_col |> 
+  unnest_wider(json) |> 
+  unnest(cols = c(x, y))
+
+# Rectangling df_row (Row-oriented JSON)
+df_row |> 
+  unnest_wider(json)
+```
+
+
