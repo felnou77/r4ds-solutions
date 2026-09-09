@@ -45,6 +45,7 @@ book:
     - spreadsheets.qmd
     - databases.qmd
     - arrow.qmd
+    - rectangling.qmd
 
 format:
   html:
