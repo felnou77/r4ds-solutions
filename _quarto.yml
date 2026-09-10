@@ -46,6 +46,7 @@ book:
     - databases.qmd
     - arrow.qmd
     - rectangling.qmd
+    - webscraping.qmd
 
 format:
   html:
