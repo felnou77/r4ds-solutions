@@ -1,0 +1,159 @@
+---
+title: "Functions"
+format: html
+---
+
+## Exercises 25.2.5 {.unnumbered}
+
+### Question 1
+
+> Practice turning the following code snippets into functions. Think about what each function does. What would you call it? How many arguments does it need?
+
+```{r, eval=FALSE}
+mean(is.na(x))
+mean(is.na(y))
+mean(is.na(z))
+
+x / sum(x, na.rm = TRUE)
+y / sum(y, na.rm = TRUE)
+z / sum(z, na.rm = TRUE)
+
+round(x / sum(x, na.rm = TRUE) * 100, 1)
+round(y / sum(y, na.rm = TRUE) * 100, 1)
+round(z / sum(z, na.rm = TRUE) * 100, 1)
+```
+
+**Solution:**
+
+```{r}
+# 1st function : Percentage of non available data
+# for example : mean(is.na(c(1, NA))) is equal to 50% which means half of our data is missing as NA
+# is.na() returns a logical vector with TRUE when the data is missing and FALSE otherwise.
+# The mean function recognizes TRUE as 1 and FALSE as 0. It adds all the zeros and ones and divide by the
+# length of our vector.
+
+Percentage_na <- function(x){
+  mean(is.na(x))
+}
+
+# The second function rescales the vector to have a range from 0 to 1 and obviously return an NA value 
+# when the actual data is missing
+
+rescale02 <- function(x){
+  x / sum(x, na.rm = TRUE)
+}
+
+# The third function is built on top of rescale02, it actually just change the way we read the rescaled values
+# from the second function. It gives the percentage of each value relatively to the sum of recorded data and 
+# keep only one decimal number after the comma. So when defining this function we may give ourself a bit of 
+# freedom to play around with the fractional part.
+
+percentage_rescale <- function(x, nbr_decimal){
+  round(rescale02(x)*100, nbr_decimal)
+}
+
+```
+
+### Question 2
+
+> In the second variant of `rescale01()`, infinite values are left unchanged. Can you rewrite `rescale01()` so that `-Inf` is mapped to 0, and `Inf` is mapped to 1?
+
+**Solution:**
+
+```{r, eval=FALSE}
+library(tidyverse)
+
+rescale01 <- function(x) {
+  rng <- range(x, na.rm = TRUE, finite = TRUE)
+  case_when(
+    x == -Inf ~ 0,
+    x ==  Inf ~ 1,
+    .default = (x - rng[1]) / (rng[2] - rng[1])
+  )
+}
+
+#  x <- c(NA, 1:3, -1:1/0)
+#> rescale01(x)
+#  [1]  NA 0.0 0.5 1.0 0.0 NaN 1.0
+```
+
+### Question 3
+
+> Given a vector of birthdates, write a function to compute the age in years.
+
+**Solution:**
+
+```{r}
+get_age <- function(birthdays) {
+  birthdays <- as_date(birthday)
+  (birthdays %--% today()) %/% years(1)
+}
+```
+
+### Question 4
+
+> Write your own functions to compute the variance and skewness of a numeric vector. You can look up the definitions on Wikipedia or elsewhere.
+
+**Solution:**
+
+> the goal of this exercise is to translate the raw mathematical formulas into R code using basic vector operations like `sum()`, `mean()`, and `length()`, explicitly avoiding `var()` or external packages.
+
+```{r}
+my_variance <- function(x) {
+  n <- length(x)
+  x_bar <- mean(x)
+  sq_dev <- (x - x_bar)^2
+  sum(sq_dev) / (n - 1)
+}
+
+my_skewness <- function(x) {
+  n <- length(x)
+  x_bar <- mean(x)
+  m3 <- sum((x - x_bar)^3) / n
+  m2 <- sum((x - x_bar)^2) / n
+  m3 / (m2^(3/2))
+}
+```
+
+### Question 5
+
+> Write `both_na()`, a summary function that takes two vectors of the same length and returns the number of positions that have an NA in both vectors.
+
+**Solution:**
+
+```{r}
+both_na <- function(x, y){
+  if(length(x) == length(y)){
+    sum(is.na(x)) + sum(is.na(y))
+  }
+  else{
+    cat("Call again the function both_na and provide 2 vectors of the same length")
+  }
+}
+```
+
+### Question 6
+
+> Read the documentation to figure out what the following functions do. Why are they useful even though they are so short?
+
+```{r, eval=FALSE}
+is_directory <- function(x) {
+  file.info(x)$isdir
+}
+is_readable <- function(x) {
+  file.access(x, 4) == 0
+}
+```
+
+**Solution:**
+
+> The `file.info()` function takes as input a vector of characters as files paths and return a data frame containing informations about those files. This data frame contain a logical column called `isdir` to indicate if the file is a directory or not. Therefore, `is_directory()` simply return given the path if the file is actually a directory or not.
+
+> `file.access()` actually takes two arguments : a character vector containing file names and a second argument called mode whic is an integer specifying access mode. `is_readable()` is actually interessted in knowing wether the given file have a read permission or not and that's why it's called `is_readable()`. The output of `file.access()` is either 0 for a success or -1 for failure.
+
+## Exercises 25.3.5 {.unnumbered}
+
+### Question 1
+
+> Using the datasets from nycflights13, write a function that:
+
