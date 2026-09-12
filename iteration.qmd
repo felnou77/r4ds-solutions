@@ -1,0 +1,129 @@
+---
+title: "Iteration"
+format: html
+---
+
+## Exercises 26.2.8 {.unnumbered}
+
+### Question 1 
+
+> Practice your `across()` skills by:
+
+**Solution:**
+
+> Computing the number of unique values in each column of `palmerpenguins::penguins`.
+
+```{r}
+library(tidyverse)
+
+penguins |> 
+  summarize(
+    across(everything(), 
+           function(x) n_distinct(x, na.rm = TRUE)
+           )
+    )
+```
+
+> Computing the mean of every column in mtcars.
+
+```{r}
+mtcars |> 
+  summarize(
+    across(everything(), 
+           function(x) mean(x, na.rm = TRUE)
+           )
+  )
+```
+
+> Grouping diamonds by cut, clarity, and color then counting the number of observations and computing the mean of each numeric column.
+
+```{r}
+diamonds |> 
+  group_by(cut, clarity, color) |> 
+  summarize(across(where(is.numeric),
+                   function(x) mean(x, na.rm = TRUE)
+                   ), 
+            n = n(), 
+            .groups = "drop"
+            )
+```
+
+### Question 2 
+
+> What happens if you use a list of functions in `across()`, but don’t name them? How is the output named?
+
+**Solution:**
+
+> Let's take the data-frame given in Hadley book to illustrate what happens and for simplicity reasons. And let's compare when we use a list of functions and naming them vs where it's not the case. 
+
+> You can identify such a difference in naming the new columns in the table below : concatenating the names with '_' as a separator versus simply adding numbers.
+
+```{r}
+df_date <- tibble(
+  name = c("Amy", "Bob"),
+  date = ymd(c("2009-08-03", "2010-01-16"))
+)
+```
+
+```{r}
+#| warning: false
+#| layout-ncol: 2
+#| fig-width: 5
+
+# Using a named list of function
+df_date |> 
+  mutate(
+    across(where(is.Date), list(year = year, month = month, day = mday))
+    )
+
+# Simply adding those functions
+df_date |> 
+  mutate(
+    across(where(is.Date), 
+           list(year, month, mday)
+           )
+    )
+```
+
+### Question 3 
+
+> Adjust `expand_dates()` to automatically remove the date columns after they’ve been expanded. Do you need to embrace any arguments?
+
+**Solution:**
+
+> Since if we leave the result as it is, we kind of create a sorte of redundance. The question asks to to remove the columns from which we created the new ones. We can acheive this simply by adding a select statment as show below.
+
+```{r, eval=FALSE}
+expand_dates <- function(df) {
+  df |> 
+    mutate(
+      across(where(is.Date), list(year = year, month = month, day = mday))
+    ) |> 
+    select(!where(is.Date))
+}
+```
+
+### Question 4 
+
+> Explain what each step of the pipeline in this function does. What special feature of where() are we taking advantage of?
+
+```{r, eval=FALSE}
+show_missing <- function(df, group_vars, summary_vars = everything()) {
+  df |> 
+    group_by(pick({{ group_vars }})) |> 
+    summarize(
+      across({{ summary_vars }}, \(x) sum(is.na(x))),
+      .groups = "drop"
+    ) |>
+    select(where(\(x) any(x > 0)))
+}
+nycflights13::flights |> show_missing(c(year, month, day))
+```
+
+
+**Solution:**
+
+
+
+
+
