@@ -49,6 +49,7 @@ book:
     - webscraping.qmd
     - functions.qmd
     - iteration.qmd
+    - base-R.qmd
 
 format:
   html:
