@@ -25,7 +25,7 @@ round(z / sum(z, na.rm = TRUE) * 100, 1)
 
 **Solution:**
 
-```{r}
+```{r, eval=FALSE}
 # 1st function : Percentage of non available data
 # for example : mean(is.na(c(1, NA))) is equal to 50% which means half of our data is missing as NA
 # is.na() returns a logical vector with TRUE when the data is missing and FALSE otherwise.
@@ -62,6 +62,7 @@ percentage_rescale <- function(x, nbr_decimal){
 
 ```{r, eval=FALSE}
 library(tidyverse)
+library(nycflights13)
 
 rescale01 <- function(x) {
   rng <- range(x, na.rm = TRUE, finite = TRUE)
@@ -83,7 +84,7 @@ rescale01 <- function(x) {
 
 **Solution:**
 
-```{r}
+```{r, eval=FALSE}
 get_age <- function(birthdays) {
   birthdays <- as_date(birthday)
   (birthdays %--% today()) %/% years(1)
@@ -98,7 +99,7 @@ get_age <- function(birthdays) {
 
 > the goal of this exercise is to translate the raw mathematical formulas into R code using basic vector operations like `sum()`, `mean()`, and `length()`, explicitly avoiding `var()` or external packages.
 
-```{r}
+```{r, eval=FALSE}
 my_variance <- function(x) {
   n <- length(x)
   x_bar <- mean(x)
@@ -121,7 +122,7 @@ my_skewness <- function(x) {
 
 **Solution:**
 
-```{r}
+```{r, eval=FALSE}
 both_na <- function(x, y){
   if(length(x) == length(y)){
     sum(is.na(x)) + sum(is.na(y))
@@ -157,3 +158,201 @@ is_readable <- function(x) {
 
 > Using the datasets from nycflights13, write a function that:
 
+**Solution:**
+
+> Finds all flights that were cancelled (i.e. is.na(arr_time)) or delayed by more than an hour.
+
+```{r, eval=FALSE}
+filter_severe <- function(data){
+  data |> 
+    filter(is.na(arr_time) | dep_delay >= 60)
+}
+```
+
+> Counts the number of cancelled flights and the number of flights delayed by more than an hour.
+
+```{r, eval=FALSE}
+summarize_severe <- function(data) {
+  data |> 
+    summarize(
+      cancelled = sum(is.na(arr_time)),
+      delayed = sum(dep_delay >= 60, na.rm = TRUE), 
+      
+    )
+}
+```
+
+> Finds all flights that were cancelled or delayed by more than a user supplied number of hours:
+
+```{r, eval=FALSE}
+filter_severe <- function(data, hours){
+  data |> 
+    filter(is.na(arr_time) | dep_delay >= hours)
+}
+```
+
+> Summarizes the weather to compute the minimum, mean, and maximum, of a user supplied variable:
+
+```{r, eval=FALSE}
+summarize_weather <- function(data, var){
+  data |> 
+    select(temp:visib) |> 
+    summarize(minimum  = min({{var}}, na.rm = TRUE), 
+              mean = mean({{var}}, na.rm = TRUE), 
+              maximum = max({{var}}, na.rm = TRUE)
+              )
+}
+```
+
+> Converts the user supplied variable that uses clock time (e.g., dep_time, arr_time, etc.) into a decimal time (i.e. hours + (minutes / 60))
+
+```{r, eval=FALSE}
+standardize_time <- function(data, var){
+  data |> 
+    mutate({{ var }} := {{ var }}%/%100 + (({{ var }}%%100)/60) )
+}
+```
+
+### Question 2
+
+> For each of the following functions list all arguments that use tidy evaluation and describe whether they use data-masking or tidy-selection: `distinct()`, `count()`, `group_by()`, `rename_with()`, `slice_min()`, `slice_sample()`.
+
+**Solution:**
+
+- **`distinct()`**: The `...` argument uses **data-masking**. It evaluates the data values to find unique rows and allows you to compute new variables on the fly (e.g., `distinct(x * 2)`).
+
+- **`count()`**: The `...` and `wt` arguments use **data-masking**. It calculates frequencies based on the data values of the provided columns or expressions.
+
+- **`group_by()`**: The `...` argument uses **data-masking**. You can pass existing columns or create new grouping variables dynamically based on cell values (e.g., `group_by(total = a + b)`).
+
+- **`rename_with()`**: The `.cols` argument uses **tidy-selection**. It dictates which columns to apply the renaming function to based entirely on their names or positions (like `starts_with("time")`), completely ignoring the data values inside them.
+
+- **`slice_min()`**: The `order_by` argument uses **data-masking**. The function must look at the actual numerical values inside the specified column to rank them and find the minimums.
+
+- **`slice_sample()`**: The `weight_by` argument uses **data-masking**. It evaluates the numeric values within a column to assign statistical sampling weights to each specific row.
+
+### Question 3 
+
+> Generalize the following function so that you can supply any number of variables to count.
+
+```{r, eval=FALSE}
+count_prop <- function(df, var, sort = FALSE) {
+  df |>
+    count({{ var }}, sort = sort) |>
+    mutate(prop = n / sum(n))
+}
+```
+
+**Solution:**
+
+```{r, eval=FALSE}
+count_prop <- function(df, ..., sort = FALSE) {
+  df |>
+    count(..., sort = sort) |>
+    mutate(prop = n / sum(n))
+}
+```
+
+## Exercises 25.4.4 {.unnumbered}
+
+### Questions 1, 2, 3
+
+> Draw a scatterplot given dataset and x and y variables. (*)
+
+> Add a line of best fit (i.e. a linear model with no standard errors). (**)
+
+> Add a title. (***)
+
+**Solution:**
+
+```{r, eval=FALSE}
+library(ggplot2)
+library(rlang)
+
+scatter_plot <- function(df, var1, var2){
+  
+  label <- rlang::englue("A scatterplot of {{ var1 }} Vs {{ var2 }}")
+  
+  df |> 
+    ggplot(aes(x = {{ var1 }}, y = {{ var2 }})) +
+    geom_point() + #(*)
+    geom_smooth(method = "loess", formula = y ~ x, color = "steelblue", se = FALSE) + #(**)
+    labs(title = label) #(***)
+}
+```
+
+
+## Exercises 25.5.1 {.unnumbered}
+
+### Question 1 
+
+> Read the source code for each of the following two functions, puzzle out what they do, and then brainstorm better names.
+
+```{r, eval=FALSE}
+f1 <- function(string, prefix) {
+  str_sub(string, 1, str_length(prefix)) == prefix
+}
+
+f3 <- function(x, y) {
+  rep(y, length.out = length(x))
+}
+```
+
+**Solution:**
+
+> To begin with, f1 takes two arguments and returns either `TRUE` or `FALSE`. Basically, It checks if the supplied string start with the given prefix. I would name it `is_prefix()`. Note that this function is case sensitive. Let's take this example below :
+
+```{r, eval=FALSE}
+hw <- "Hadley Wickham"
+
+is_prefix <- function(string, prefix) {
+  str_sub(string, 1, str_length(prefix)) == prefix
+}
+
+is_prefix(hw, "hadley") # hw starts with capital "H" and not "h"
+ #> [1] FALSE
+```
+
+> f3 takes two vectors of values and return a vector of elements extracted from the second variable. What determines the length of the returned vector ? well, it comes from the length of the first vector. To put it simply : the returned vector contains elements from the second supplied vector with the length of the first vector. What's obvious is the following : if the length of the two vectors are equals the function simply return the second vector. If the length of x is smaller, it simply returns the first length(x) elements of the y vector. And finally if length(x) > length(y) we simply return the replicates in the same order of the elements of y until reaching the full length of x. 
+
+> Personally, I would name it simply `replicate_length()`. I also would like to swap the variables to emphasize that we replicating the the first vector based on the length of the second one. 
+
+```{r, eval=FALSE}
+replicate_length <- function(y, x) {
+  rep(y, length.out = length(x))
+}
+```
+
+
+### Question 2 
+
+> Take a function that you’ve written recently and spend 5 minutes brainstorming a better name for it and its arguments.
+
+**Solution:**
+
+> Let's go back to the plot function coded previously. It simply takes a data frame and plots a scatter plot of two of its variable (obviously numeric) against each other. 
+
+```{r, eval=FALSE}
+scatter_plot <- function(df, var1, var2){
+  
+  label <- rlang::englue("A scatterplot of {{ var1 }} Vs {{ var2 }}")
+  
+  df |> 
+    ggplot(aes(x = {{ var1 }}, y = {{ var2 }})) +
+    geom_point() + #(*)
+    geom_smooth(method = "loess", formula = y ~ x, color = "steelblue", se = FALSE) + #(**)
+    labs(title = label) #(***)
+}
+```
+
+### Question 3 
+
+> Make a case for why `norm_r()`, `norm_d()` etc. would be better than `rnorm()`, `dnorm()`. Make a case for the opposite. How could you make the names even clearer?
+
+**Solution:**
+
+> I would rename them as follows : 
+
+- `norm_generate()` instead of rnorm()
+
+- `norm_density()` instead of dnorm()
