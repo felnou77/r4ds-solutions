@@ -117,12 +117,11 @@ show_missing <- function(df, group_vars, summary_vars = everything()) {
     ) |>
     select(where(\(x) any(x > 0)))
 }
-nycflights13::flights |> show_missing(c(year, month, day))
 ```
-
 
 **Solution:**
 
+> This function returns a data frame containing information about the number of missing values for each column after grouping by the supplied variables. The select function keep only columns where there is at least a missing value per grouping, so for example the column origin do not have a single missing value so it is dropped from the final data frame. 
 
 
 
