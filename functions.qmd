@@ -353,6 +353,6 @@ scatter_plot <- function(df, var1, var2){
 
 > I would rename them as follows : 
 
-- `norm_generate()` instead of rnorm()
+- `norm_generate()` instead of `rnorm()`
 
-- `norm_density()` instead of dnorm()
+- `norm_density()` instead of `dnorm()`
