@@ -313,7 +313,7 @@ is_prefix(hw, "hadley") # hw starts with capital "H" and not "h"
  #> [1] FALSE
 ```
 
-> f3 takes two vectors of values and return a vector of elements extracted from the second variable. What determines the length of the returned vector ? well, it comes from the length of the first vector. To put it simply : the returned vector contains elements from the second supplied vector with the length of the first vector. What's obvious is the following : if the length of the two vectors are equals the function simply return the second vector. If the length of x is smaller, it simply returns the first length(x) elements of the y vector. And finally if length(x) > length(y) we simply return the replicates in the same order of the elements of y until reaching the full length of x. 
+> f3 takes two vectors of values and return a vector of elements extracted from the second variable. What determines the length of the returned vector ? well, it comes from the length of the first vector. To put it simply : the returned vector contains elements from the second supplied vector with the length of the first vector. What's obvious is the following : if the length of the two vectors are equals the function simply return the second vector. If the length of x is smaller, it simply returns the first `length(x)` elements of the `y` vector. And finally if `length(x) > length(y)` we simply return the replicates in the same order of the elements of y until reaching the full length of `x`. 
 
 > Personally, I would name it simply `replicate_length()`. I also would like to swap the variables to emphasize that we replicating the the first vector based on the length of the second one. 
 
