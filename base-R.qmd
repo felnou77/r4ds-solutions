@@ -1,0 +1,45 @@
+---
+title: "A field guide to base R"
+format: html
+---
+
+## Exercises 27.2.4 {.unnumbered}
+
+### Question 1
+
+> Create functions that take a vector as input and return:
+
+**Solution:**
+
+> The elements at even-numbered positions.
+
+```{r, eval=FALSE}
+even_numbered <- function(x){
+  c = 1:length(x)
+  x[c %% 2 == 0]
+}
+```
+
+> Every element except the last value.
+
+```{r, eval=FALSE}
+except_last <- function(x){
+  x[1:length(x)-1]
+}
+```
+
+> Only even values (and no missing values).
+
+```{r}
+even_non_missing <- function(x){
+  x[x%%2 == 0 & !is.na(x)]
+}
+```
+
+### Question 2
+
+> Why is `x[-which(x > 0)]` not the same as `x[x <= 0]`? Read the documentation for `which()` and do some experiments to figure it out.
+
+**Solution:**
+
+> In this specific example where the vector contains only negative values `x <- c(-1, -2)`. `x[x <= 0]` will return `c(-1, -2)` and in the other hand `x[-which(x > 0)]` will output numeric(0). The first uses logivcal subsetting and the second integer subsetting. 
