@@ -48,6 +48,7 @@ book:
     - rectangling.qmd
     - webscraping.qmd
     - functions.qmd
+    - iteration.qmd
 
 format:
   html:
