@@ -42,4 +42,22 @@ even_non_missing <- function(x){
 
 **Solution:**
 
-> In this specific example where the vector contains only negative values `x <- c(-1, -2)`. `x[x <= 0]` will return `c(-1, -2)` and in the other hand `x[-which(x > 0)]` will output numeric(0). The first uses logivcal subsetting and the second integer subsetting. 
+> In this specific example where the vector contains only negative values `x <- c(-1, -2)`. `x[x <= 0]` will return `c(-1, -2)` and in the other hand `x[-which(x > 0)]` will output numeric(0). The first uses logical subsetting and the second integer subsetting. 
+
+## Exercises 27.3.4 {.unnumbered}
+
+### Question 1
+
+> What happens when you use `[[` with a positive integer that’s bigger than the length of the vector? What happens when you subset with a name that doesn’t exist?
+
+**Solution:**
+
+> In both cases it raises an error except for a list it returns NULL.
+
+### Question 2 
+
+> What would `pepper[[1]][1]` be? What about `pepper[[1]][[1]]`?
+
+**Solution:**
+
+> I guess `pepper[[1]][1]` would extract a smaller packet containing only the first grain of pepper. Therefore, `pepper[[1]][[1]]` would subsequently extract a single grain of pepper.
