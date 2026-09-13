@@ -23,33 +23,43 @@ book:
 
   chapters:
     - index.qmd
-    - data-visualisation.qmd
-    - workflow-1.qmd
-    - data-transformation.qmd
-    - workflow-2.qmd
-    - data-tidying.qmd
-    - workflow-3.qmd
-    - data-import.qmd
-    - workflow-4.qmd
-    - layers.qmd
-    - eda.qmd
-    - comm.qmd
-    - lv.qmd
-    - numbers.qmd
-    - strings.qmd
-    - regex.qmd
-    - factors.qmd
-    - datetimes.qmd
-    - missing-values.qmd
-    - joins.qmd
-    - spreadsheets.qmd
-    - databases.qmd
-    - arrow.qmd
-    - rectangling.qmd
-    - webscraping.qmd
-    - functions.qmd
-    - iteration.qmd
-    - base-R.qmd
+    - part: "Whole game"
+      chapters:
+          - data-visualisation.qmd
+          - workflow-1.qmd
+          - data-transformation.qmd
+          - workflow-2.qmd
+          - data-tidying.qmd
+          - workflow-3.qmd
+          - data-import.qmd
+          - workflow-4.qmd
+    - part: "Visualize"
+      chapters: 
+          - layers.qmd
+          - eda.qmd
+          - comm.qmd
+    - part: "Transform"
+      chapters:
+          - lv.qmd
+          - numbers.qmd
+          - strings.qmd
+          - regex.qmd
+          - factors.qmd
+          - datetimes.qmd
+          - missing-values.qmd
+          - joins.qmd
+    - part: "Import"
+      chapters:
+          - spreadsheets.qmd
+          - databases.qmd
+          - arrow.qmd
+          - rectangling.qmd
+          - webscraping.qmd
+    - part: "Program"
+      chapters:
+          - functions.qmd
+          - iteration.qmd
+          - base-R.qmd
 
 format:
   html:
