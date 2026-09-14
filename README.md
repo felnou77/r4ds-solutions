@@ -1,6 +1,6 @@
 # R for Data Science (2e) - Complete Solutions
 
-[![Live Book](https://nawfal-r-for-data-science-solutions.share.connect.posit.cloud/) 
+[Live Book](https://nawfal-r-for-data-science-solutions.share.connect.posit.cloud/) 
 
 ## About the Project
 This repository contains fully reproducible code and detailed explanations for the exercises in Hadley Wickham’s *R for Data Science (2nd Edition)*. 
@@ -18,8 +18,4 @@ Most existing Quarto solution manuals online are abandoned halfway through, usua
 * **Deployment:** Posit Connect Cloud
 
 ## How to Use This Repository
-You can read the compiled book directly at the live link above. If you prefer to interact with the code locally:
-
-1. Clone the repository:
-   ```bash
-   git clone [https://github.com/yourusername/r4ds-solutions.git](https://github.com/yourusername/r4ds-solutions.git)
+You can read the compiled book directly at the live link above.
