@@ -1,5 +1,25 @@
-Hello and welcome! This Repository is dedicated to solving the exercises found in Hadley’s book, R for Data Science. Here you’ll find the necessary code along with the text comments and answers that go with it. My intention in sharing this work wasn’t just to publish a solutions manual, but rather to learn more about coding in R. That being said, my workflow wasn’t about just jumping straight into the exercises (which I could have done since I have over 2 years of experience coding with R). Instead, it was more like a learning journey with the best contributor to the R community.
+# R for Data Science (2e) - Complete Solutions
 
-Note too that I was assisted by a “Senior Developer” we all know, who goes by a few different names—in this case, Gemini Pro. Don’t get me wrong: Hadley’s book has over 130 questions in total, if not way more, and only about 7 to 8 questions were literally solved thanks to this virtual mentor. Even then, that didn’t stop me from rereading those answers, absorbing the knowledge, and putting it in my own words for the final result.
+[![Live Book](https://nawfal-r-for-data-science-solutions.share.connect.posit.cloud/) 
 
-Ultimately, this project is a humble attempt to give back to the R community. I built it for the beginners who are ready to challenge themselves and learn R from the ground up. I was particularly motivated by the fact that most existing Quarto solution manuals online are abandoned halfway through, usually stopping right after the “Whole Game” section. I wanted to bridge that gap, providing a comprehensive, start-to-finish companion to guide fellow learners through their entire data science journey.
+## About the Project
+This repository contains fully reproducible code and detailed explanations for the exercises in Hadley Wickham’s *R for Data Science (2nd Edition)*. 
+
+My intention in building this resource wasn't simply to publish another answer key, but to actively deepen my own mastery of the R programming language. I approached the book as an immersive masterclass, taking the time to absorb modern workflows and best practices directly from the R community. 
+
+Most existing Quarto solution manuals online are abandoned halfway through, usually stopping right after the "Whole Game" section. This project bridges that gap, providing a comprehensive, start-to-finish companion to guide fellow learners through their entire data science journey.
+
+**A Note on AI Assistance:** I tackled this project alongside a virtual mentor (Gemini). Out of the massive catalog of questions in the book, only a handful were directly solved by AI. When utilized, it served as a thought partner to dissect complex logic, assimilate underlying mechanics, and reformulate concepts to ensure the final code was robust and entirely my own.
+
+## Tech Stack
+* **Language:** R
+* **Core Packages:** The core `tidyverse`, `rlang`, `ggplot2`, `lubridate`, `stringr`...
+* **Publishing Framework:** Quarto
+* **Deployment:** Posit Connect Cloud
+
+## How to Use This Repository
+You can read the compiled book directly at the live link above. If you prefer to interact with the code locally:
+
+1. Clone the repository:
+   ```bash
+   git clone [https://github.com/yourusername/r4ds-solutions.git](https://github.com/yourusername/r4ds-solutions.git)
