@@ -9,13 +9,8 @@ My intention in building this resource wasn't simply to publish another answer k
 
 Most existing Quarto solution manuals online are abandoned halfway through, usually stopping right after the "Whole Game" section. This project bridges that gap, providing a comprehensive, start-to-finish companion to guide fellow learners through their entire data science journey.
 
-**A Note on AI Assistance:** I tackled this project alongside a virtual mentor (Gemini). Out of the massive catalog of questions in the book, only a handful were directly solved by AI. When utilized, it served as a thought partner to dissect complex logic, assimilate underlying mechanics, and reformulate concepts to ensure the final code was robust and entirely my own.
-
 ## Tech Stack
 * **Language:** R
 * **Core Packages:** The core `tidyverse`, `rlang`, `ggplot2`, `lubridate`, `stringr`...
 * **Publishing Framework:** Quarto
 * **Deployment:** Posit Connect Cloud
-
-## How to Use This Repository
-You can read the compiled book directly at the live link above.
