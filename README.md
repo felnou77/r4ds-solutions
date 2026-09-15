@@ -1,6 +1,6 @@
 # R for Data Science (2e) - Complete Solutions
 
-[Live Book](https://nawfal-r-for-data-science-solutions.share.connect.posit.cloud/) 
+[R for Data Science (2e) Solutions: Live Book](https://nawfal-r-for-data-science-solutions.share.connect.posit.cloud/) 
 
 ## About the Project
 This repository contains fully reproducible code and detailed explanations for the exercises in Hadley Wickham’s *R for Data Science (2nd Edition)*. 
